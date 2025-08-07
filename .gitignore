@@ -18,9 +18,9 @@ env/
 
 # GitHub Classroom autograding (hide from students)
 .github/classroom/
-.github/workflows/classroom.yml
+.github/workflows/
 
-# Keep the hidden config directory
+# Keep the hidden config directory for instructor setup
 !.config/
 
 # Data files (uncomment to ignore large datasets)

@@ -23,6 +23,12 @@ This directory contains the autograding configuration files that are hidden from
 
 4. **Students receive repositories** without visible autograding files
 
+### ⚠️ Important: Template Repository Workflows
+
+This template repository has no active GitHub Actions workflows to prevent unnecessary runs and failed autograding emails. Workflows are only created when you run the setup script for GitHub Classroom.
+
+If you receive autograding failure emails from the template repository, it means workflows ran before being properly disabled. These can be safely ignored - they won't affect student repositories.
+
 ### Why hide these files?
 
 - Prevents students from seeing test criteria and potentially cheating
