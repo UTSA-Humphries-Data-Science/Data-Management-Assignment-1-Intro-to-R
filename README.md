@@ -1,12 +1,14 @@
-# Data Management Classroom
+# Data Management Assignment 1: Introduction to R
 
-A **zero-touch Codespaces environment** for data science education using Python, R, Jupyter, and PostgreSQL.
+Welcome to your first data management assignment! This repository contains a complete R environment ready for data analysis.
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-1. **Open in Codespaces** - Click "Create codespace" 
-2. **Wait for setup** - Takes 5-10 minutes for first-time setup
-3. **Start coding** - Everything works immediately, no manual setup required
+1. **Accept the Assignment** - You should have received this via GitHub Classroom
+2. **Open in Codespaces** - Click the green "Code" button → "Codespaces" → "Create codespace"
+3. **Wait for setup** - Takes 5-10 minutes for first-time setup
+4. **Complete your assignment** - Follow the instructions in `assignment/Homework/README.md`
+5. **Submit your work** - Commit and push your changes (instructions below)
 
 ## 🎯 What You Get
 
@@ -24,16 +26,46 @@ A **zero-touch Codespaces environment** for data science education using Python,
 - ✅ All packages pre-installed
 - ✅ Students can start coding right away
 
-## 📁 Project Structure
+## � Assignment Instructions
+
+Your assignment is located in the `assignment/Homework/` folder. Complete all tasks in the README file there.
+
+## 📁 Repository Structure
 
 ```
-├── assignments/     # Course assignments and exercises
-├── notebooks/       # Jupyter notebooks and examples
-├── data/           # Datasets and CSV files
-├── databases/      # SQL scripts and database files
-├── scripts/        # Environment testing and utility scripts
-└── .devcontainer/  # Codespaces configuration (students don't need to touch)
+├── assignment/
+│   └── Homework/           # YOUR ASSIGNMENT IS HERE
+│       ├── README.md       # Assignment instructions
+│       └── [your files]    # Create your R script or R Markdown here
+├── data/                   # Sample datasets for your assignment
+├── notebooks/              # Example notebooks (for reference)
+├── databases/              # Pre-loaded databases
+└── scripts/                # Environment setup scripts (don't modify)
 ```
+
+## 💾 How to Submit Your Assignment
+
+### Step 1: Complete Your Work
+- Create your R script (`.R`) or R Markdown (`.Rmd`) file in `assignment/Homework/`
+- Name it `homework_lesson_1.R` or `homework_lesson_1.Rmd`
+- Make sure your code runs without errors
+
+### Step 2: Save and Commit Your Changes
+```bash
+# Add your files to git
+git add assignment/Homework/
+
+# Commit with a descriptive message
+git commit -m "Complete homework assignment 1"
+
+# Push to GitHub (this submits your assignment)
+git push origin main
+```
+
+### Step 3: Verify Submission
+- Go to your GitHub repository online
+- Check that your files appear in the `assignment/Homework/` folder
+- GitHub Classroom will automatically grade your submission
 
 ## 🧪 Environment Details
 

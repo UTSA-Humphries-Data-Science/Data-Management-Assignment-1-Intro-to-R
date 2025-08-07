@@ -1,34 +1,39 @@
 # Homework Assignment - Lesson 1: Introduction to R
 
-
+**Due Date:** [Your instructor will specify]  
+**Points:** 30 points total
 
 **Instructions:**
 
-*   Complete the following tasks in an R script (`.R` file) or an R Markdown document (`.Rmd` file) in VS Code Codespaces.
+*   Complete the following tasks in an R script (`.R` file) or an R Markdown document (`.Rmd` file).
+*   Name your file `homework_lesson_1.R` or `homework_lesson_1.Rmd`
+*   Save your file in this folder (`assignment/Homework/`)
 *   Ensure your code is well-commented and easy to understand.
-*   Submit your `.R` or `.Rmd` file, along with any generated output files (e.g., cleaned CSVs if applicable).
+*   Commit and push your completed assignment to submit.
+
+⚠️ **Important:** The data files (`sales_data.csv` and `customer_feedback.xlsx`) are already provided in the `data/` folder at the root of this repository.
 
 ---
 
 ## Part 1: Setting Up Your Environment and Importing Data
 
 1.  **Working Directory:**
-    *   Open VS Code Codespaces and create a new folder for this homework assignment (e.g., `homework_lesson_1`).
+    *   You are already in the correct Codespaces environment - no need to create folders.
     *   Verify your current working directory using `getwd()`.
-    *   If necessary, set your working directory to the newly created folder using `setwd()`.
+    *   Your working directory should be `/workspaces/Data-Management-Assignment-1-Intro-to-R`
 
 2.  **Package Installation & Loading:**
-    *   Ensure the `tidyverse` and `readxl` packages are installed. If not, install them.
-    *   Load both packages into your R session.
+    *   The required packages are already installed in this environment.
+    *   Load `tidyverse` and `readxl` packages into your R session.
 
 3.  **Data Import - CSV:**
-    *   Download the `sales_data.csv` file from the course materials (or create one with similar structure if not available). This file contains dummy sales records.
-    *   Import `sales_data.csv` into an R data frame named `sales_df` using `read_csv()`.
+    *   The `sales_data.csv` file is located in the `data/` folder.
+    *   Import it using: `sales_df <- read_csv("data/sales_data.csv")`
 
 4.  **Data Import - Excel:**
-    *   Download the `customer_feedback.xlsx` file from the course materials (or create one with similar structure if not available). This file contains customer feedback data, with different sheets for `Ratings` and `Comments`.
-    *   Import the `Ratings` sheet from `customer_feedback.xlsx` into an R data frame named `ratings_df` using `read_excel()`.
-    *   Import the `Comments` sheet from `customer_feedback.xlsx` into an R data frame named `comments_df` using `read_excel()`.
+    *   The `customer_feedback.xlsx` file is located in the `data/` folder.
+    *   Import the `Ratings` sheet: `ratings_df <- read_excel("data/customer_feedback.xlsx", sheet = "Ratings")`
+    *   Import the `Comments` sheet: `comments_df <- read_excel("data/customer_feedback.xlsx", sheet = "Comments")`
 
 ---
 
@@ -42,6 +47,28 @@ Perform the following inspection tasks for each of the three data frames you imp
 4.  **Visual Inspection (Optional, but Recommended):** If your VS Code setup allows, use `View()` to open each data frame in the data viewer and briefly describe any immediate observations (e.g., presence of missing values, unexpected values).
 
 ---
+
+## 📋 Submission Checklist
+
+Before submitting your assignment, make sure you have:
+
+- [ ] Created a file named `homework_lesson_1.R` or `homework_lesson_1.Rmd` in this folder
+- [ ] Completed all tasks in Parts 1, 2, and 3
+- [ ] Added comments to explain your code
+- [ ] Tested that your code runs without errors
+- [ ] Answered all reflection questions
+- [ ] Committed your changes: `git add . && git commit -m "Complete assignment 1"`
+- [ ] Pushed to GitHub: `git push origin main`
+
+## 🆘 Getting Help
+
+If you encounter issues:
+1. Check that your file is saved in the correct location (`assignment/Homework/`)
+2. Verify your code runs without errors in the R console
+3. Make sure you've committed and pushed your changes
+4. Contact your instructor if you need assistance
+
+**Good luck with your assignment! 🎯**
 
 ## Part 3: Reflection Questions
 
