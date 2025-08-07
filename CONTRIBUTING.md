@@ -1,73 +1,71 @@
 # How to Submit Your Assignment to GitHub Classroom
 
-## 📚 Complete Submission Guide
+## 📚 Simple Submission Guide (No Command Line Required!)
 
 ### Step 1: Complete Your Assignment
 1. **Open your notebook**: `assignment/Homework/homework_lesson_1.ipynb`
 2. **Fill in your information** at the top (name, date)
 3. **Complete all sections** (Parts 1, 2, and 3)
 4. **Run all cells** to show your outputs (Cell → Run All)
-5. **Save your work** (Ctrl+S or Cmd+S)
+5. **Save your work** (Ctrl+S or File → Save)
 
-### Step 2: Submit via Git Commands
+### Step 2: Submit Using VS Code Interface (Easy Way!)
 
-**Option A: Using VS Code Terminal**
-1. Open Terminal in VS Code (Terminal → New Terminal)
-2. Run these commands one by one:
+**No need to use terminal commands! Just click buttons in VS Code:**
 
-```bash
-# Make sure you're in the right directory
-cd /workspaces/Data-Management-Assignment-1-Intro-to-R
+1. **Find Source Control** in VS Code:
+   - Look at the left sidebar
+   - Click the icon that looks like a tree branch (Source Control)
 
-# Check what files you've changed
-git status
+2. **Stage your file**:
+   - You'll see `homework_lesson_1.ipynb` in the changes list
+   - Click the **"+"** button next to it
 
-# Add your completed notebook
-git add assignment/Homework/homework_lesson_1.ipynb
+3. **Add a commit message**:
+   - Type in the text box: `Submit homework lesson 1 - [Your Name]`
 
-# Commit with a message
-git commit -m "Submit homework lesson 1 - [Your Name]"
+4. **Commit your changes**:
+   - Click the **"Commit"** button
 
-# Push to GitHub Classroom
-git push origin main
-```
-
-**Option B: Using VS Code Git Interface**
-1. Click the Source Control icon in the left sidebar (looks like a branch)
-2. You'll see your changed files listed
-3. Click the "+" next to `homework_lesson_1.ipynb` to stage it
-4. Type a commit message like "Submit homework lesson 1 - [Your Name]"
-5. Click the "Commit" button
-6. Click "Sync Changes" or "Push" to submit
+5. **Push to GitHub Classroom**:
+   - Click **"Sync Changes"** or **"Push"** button
+   - This submits your assignment!
 
 ### Step 3: Verify Your Submission
 
-1. **Check the terminal output** - you should see something like:
-   ```
-   Enumerating objects: 5, done.
-   Counting objects: 100% (5/5), done.
-   Writing objects: 100% (3/3), 2.15 KiB | 2.15 MiB/s, done.
-   Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
-   To https://github.com/[instructor]/[your-repo-name].git
-      abc1234..def5678  main -> main
-   ```
+1. **Check VS Code** - you should see "Successfully pushed" or similar message
 
 2. **Visit your GitHub repository**:
-   - Go to your assignment repository in a web browser
+   - Open a new browser tab
+   - Go to your assignment repository 
    - Navigate to `assignment/Homework/`
    - Click on `homework_lesson_1.ipynb`
    - Verify you can see your completed work with outputs
 
-3. **Check for auto-grading results** (if enabled):
-   - Go to the "Actions" tab in your GitHub repository
-   - Look for a green checkmark or red X next to your latest commit
+### 🚨 Common Issues and Solutions
 
-## 🚨 Submission Deadline Reminders
+**"I don't see Source Control":**
+- Look for the tree branch icon in the left sidebar
+- If missing, go to View → Source Control
+
+**"No changes detected":**
+- Make sure you saved your notebook first (Ctrl+S)
+- Check that you actually made changes to the file
+
+**"My file isn't in the changes list":**
+- Save the file again (Ctrl+S)
+- Try refreshing VS Code (F5)
+
+**"Sync failed":**
+- Try clicking "Pull" first, then "Push" again
+- Contact your instructor if problems persist
+
+### � Submission Deadline Reminders
 
 - **Submit before the deadline** - GitHub Classroom tracks submission timestamps
 - **You can submit multiple times** - your latest submission before the deadline counts
-- **Don't wait until the last minute** - allow time for technical issues
 - **Always verify your submission** - check that your work appears on GitHub
+- **Don't wait until the last minute** - allow time for technical issues
 
 ## Troubleshooting
 

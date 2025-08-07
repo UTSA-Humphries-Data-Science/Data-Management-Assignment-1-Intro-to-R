@@ -65,30 +65,20 @@ Before submitting your assignment, make sure you have:
 - [ ] Pushed to GitHub Classroom: `git push origin main`
 - [ ] Verified your submission appears on GitHub online
 
-## 🚀 How to Submit to GitHub Classroom
+## 🚀 How to Submit to GitHub Classroom (VS Code Interface - No Commands!)
 
 ### Quick Submission Steps:
 
-1. **Save your completed notebook** (Ctrl+S)
+1. **Complete and save your notebook** (Ctrl+S)
 
-2. **Open terminal in Codespaces** (Terminal → New Terminal)
+2. **Use VS Code Source Control** (no terminal needed!):
+   - Click the **Source Control** icon in left sidebar (tree branch symbol)
+   - Click **"+"** next to `homework_lesson_1.ipynb` to stage your file
+   - Type a commit message: `Submit homework lesson 1 - [Your Name]`
+   - Click **"Commit"** button
+   - Click **"Sync Changes"** or **"Push"** button
 
-3. **Submit your work:**
-   ```bash
-   # Navigate to the repository root (if not already there)
-   cd /workspaces/Data-Management-Assignment-1-Intro-to-R
-   
-   # Add your notebook
-   git add assignment/Homework/homework_lesson_1.ipynb
-   
-   # Commit your work
-   git commit -m "Submit homework lesson 1 - [Your Name]"
-   
-   # Push to GitHub Classroom
-   git push origin main
-   ```
-
-4. **Verify submission:**
+3. **Verify submission:**
    - Go to your GitHub repository in a web browser
    - Navigate to `assignment/Homework/`
    - Click on your notebook to see your completed work
@@ -96,10 +86,12 @@ Before submitting your assignment, make sure you have:
 
 ### ✅ Submission Confirmation
 You'll know your assignment was submitted successfully when:
-- You see "Everything up-to-date" or similar success message after `git push`
+- VS Code shows "Successfully pushed" or "Everything up-to-date"
 - Your notebook appears in your GitHub repository online
 - The file shows your completed code and outputs
-- GitHub Classroom may run automated tests (you'll see results in the Actions tab)
+- You can see a recent "Last commit" timestamp
+
+**🆘 Need help?** See [GITHUB_CLASSROOM_SUBMISSION.md](../../GITHUB_CLASSROOM_SUBMISSION.md) for detailed step-by-step instructions.
 
 ## 🆘 Getting Help
 

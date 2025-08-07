@@ -49,42 +49,34 @@ Your assignment is located in the `assignment/Homework/` folder. Complete all ta
 
 ## 💾 How to Submit Your Assignment to GitHub Classroom
 
-### Step 1: Complete Your Work
+### Simple 3-Step Process (No Command Line Required!)
+
+#### Step 1: Complete Your Work
 - Open the Jupyter notebook `assignment/Homework/homework_lesson_1.ipynb`
 - Complete all code cells and markdown responses
-- Run all cells to show your output
-- Save the notebook (Ctrl+S or Cmd+S)
+- Run all cells to show your output (Cell → Run All)
+- Save the notebook (Ctrl+S or File → Save)
 
-### Step 2: Check Your Work
-Before submitting, make sure:
-- All cells have been executed and show output
-- You've answered all reflection questions
-- Your name and date are filled in at the top
-- The notebook saves without errors
+#### Step 2: Submit Using VS Code Interface
+1. **Click the Source Control icon** in the left sidebar (looks like a tree branch)
+2. **Click the "+" button** next to your notebook file to stage it
+3. **Type a message** like "Submit homework 1 - [Your Name]"
+4. **Click "Commit"** to save your changes
+5. **Click "Sync Changes"** or "Push" to submit to GitHub Classroom
 
-### Step 3: Submit via Git
-```bash
-# Add your completed notebook to git
-git add assignment/Homework/homework_lesson_1.ipynb
-
-# Commit with a descriptive message
-git commit -m "Complete homework assignment 1"
-
-# Push to GitHub Classroom (this submits your assignment)
-git push origin main
-```
-
-### Step 4: Verify Your Submission
-1. Go to your GitHub repository online (check the URL in your browser)
+#### Step 3: Verify Your Submission
+1. Open your GitHub repository in a web browser
 2. Navigate to `assignment/Homework/`
-3. Click on `homework_lesson_1.ipynb` to verify it shows your completed work
-4. Check that the "Last commit" timestamp is recent
+3. Click on `homework_lesson_1.ipynb` to verify your completed work appears
+4. Check that all your outputs are visible
 
-### ⚠️ Important Submission Notes
-- **Deadline**: Submit before the due date - late submissions may not be accepted
-- **Multiple submissions**: You can push multiple times before the deadline (your latest submission counts)
-- **Verification**: Always check your GitHub repository online to confirm your work is there
-- **Auto-grading**: GitHub Classroom will automatically run basic tests on your submission
+### ⚠️ Important Notes
+- **No git commands needed** - use the VS Code buttons instead!
+- **Multiple submissions allowed** - you can submit multiple times before the deadline
+- **Always verify online** - check your GitHub repository to confirm submission
+- **Save first!** - always save your notebook before submitting
+
+**📖 Need detailed help?** See [GITHUB_CLASSROOM_SUBMISSION.md](GITHUB_CLASSROOM_SUBMISSION.md) for step-by-step instructions with screenshots.
 
 ## 🧪 Environment Details
 
