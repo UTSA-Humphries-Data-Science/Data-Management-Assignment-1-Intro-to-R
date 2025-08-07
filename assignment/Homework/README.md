@@ -5,11 +5,11 @@
 
 **Instructions:**
 
-*   Complete the following tasks in an R script (`.R` file) or an R Markdown document (`.Rmd` file).
-*   Name your file `homework_lesson_1.R` or `homework_lesson_1.Rmd`
-*   Save your file in this folder (`assignment/Homework/`)
-*   Ensure your code is well-commented and easy to understand.
-*   Commit and push your completed assignment to submit.
+*   Complete the following tasks in the Jupyter notebook `homework_lesson_1.ipynb` using the R kernel.
+*   The notebook template is already created for you in this folder.
+*   Add your code and markdown explanations in the appropriate cells.
+*   Make sure to run all cells to show your output.
+*   Commit and push your completed notebook to submit.
 
 ⚠️ **Important:** The data files (`sales_data.csv` and `customer_feedback.xlsx`) are already provided in the `data/` folder at the root of this repository.
 
@@ -52,11 +52,13 @@ Perform the following inspection tasks for each of the three data frames you imp
 
 Before submitting your assignment, make sure you have:
 
-- [ ] Created a file named `homework_lesson_1.R` or `homework_lesson_1.Rmd` in this folder
+- [ ] Completed the Jupyter notebook `homework_lesson_1.ipynb` in this folder
+- [ ] Run all cells to show output
+- [ ] Added your name and date at the top of the notebook
 - [ ] Completed all tasks in Parts 1, 2, and 3
-- [ ] Added comments to explain your code
-- [ ] Tested that your code runs without errors
+- [ ] Added markdown explanations and observations
 - [ ] Answered all reflection questions
+- [ ] Saved the notebook (Ctrl+S or Cmd+S)
 - [ ] Committed your changes: `git add . && git commit -m "Complete assignment 1"`
 - [ ] Pushed to GitHub: `git push origin main`
 

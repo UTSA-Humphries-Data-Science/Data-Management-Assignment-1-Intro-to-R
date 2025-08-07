@@ -2,22 +2,24 @@
 
 ## Quick Submission Guide
 
-1. **Complete your work** in `assignment/Homework/homework_lesson_1.R` (or `.Rmd`)
+1. **Complete your work** in `assignment/Homework/homework_lesson_1.ipynb`
 
-2. **Check your work** by running your code to make sure it works
+2. **Run all cells** to make sure your code works and shows output
 
-3. **Commit your changes:**
+3. **Save your notebook** (Ctrl+S or Cmd+S)
+
+4. **Commit your changes:**
    ```bash
    git add assignment/Homework/
    git commit -m "Complete homework lesson 1"
    ```
 
-4. **Push to submit:**
+5. **Push to submit:**
    ```bash
    git push origin main
    ```
 
-5. **Verify submission** by checking your GitHub repository online
+6. **Verify submission** by checking your GitHub repository online
 
 ## Troubleshooting
 
@@ -32,8 +34,14 @@
 
 ### Code doesn't run
 - Check for typos in variable names
-- Make sure you loaded required packages: `library(tidyverse)`
+- Make sure you loaded required packages in the first cells
 - Verify data file paths are correct
+- Try restarting the R kernel: Kernel → Restart Kernel
+
+### Notebook won't save
+- Make sure you have write permissions
+- Try Ctrl+S (or Cmd+S) to force save
+- Check disk space isn't full
 
 ### Still having issues?
 Contact your instructor with:

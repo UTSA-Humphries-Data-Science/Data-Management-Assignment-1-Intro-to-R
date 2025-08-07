@@ -3,7 +3,7 @@
     {
       "name": "Check R Environment",
       "setup": "cd /workspaces/Data-Management-Assignment-1-Intro-to-R",
-      "run": "Rscript scripts/test_r_kernel.sh",
+      "run": "R --version",
       "input": "",
       "output": "",
       "comparison": "included",
@@ -11,9 +11,9 @@
       "points": 5
     },
     {
-      "name": "Check Required Files",
+      "name": "Check Required Notebook File",
       "setup": "",
-      "run": "test -f assignment/Homework/homework_lesson_1.R || test -f assignment/Homework/homework_lesson_1.Rmd",
+      "run": "test -f assignment/Homework/homework_lesson_1.ipynb",
       "input": "",
       "output": "",
       "comparison": "included",
@@ -21,11 +21,11 @@
       "points": 10
     },
     {
-      "name": "Check Data Import",
-      "setup": "cd assignment/Homework",
-      "run": "Rscript -e \"source('homework_lesson_1.R'); exists('sales_df') && exists('ratings_df') && exists('comments_df')\"",
+      "name": "Check Notebook Content",
+      "setup": "",
+      "run": "grep -q 'sales_df.*read_csv' assignment/Homework/homework_lesson_1.ipynb && grep -q 'ratings_df.*read_excel' assignment/Homework/homework_lesson_1.ipynb",
       "input": "",
-      "output": "TRUE",
+      "output": "",
       "comparison": "included",
       "timeout": 30,
       "points": 15

@@ -46,9 +46,10 @@ Your assignment is located in the `assignment/Homework/` folder. Complete all ta
 ## 💾 How to Submit Your Assignment
 
 ### Step 1: Complete Your Work
-- Create your R script (`.R`) or R Markdown (`.Rmd`) file in `assignment/Homework/`
-- Name it `homework_lesson_1.R` or `homework_lesson_1.Rmd`
-- Make sure your code runs without errors
+- Open the Jupyter notebook `assignment/Homework/homework_lesson_1.ipynb`
+- Complete all code cells and markdown responses
+- Run all cells to show your output
+- Save the notebook (Ctrl+S or Cmd+S)
 
 ### Step 2: Save and Commit Your Changes
 ```bash
