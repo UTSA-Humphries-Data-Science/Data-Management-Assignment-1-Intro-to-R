@@ -156,3 +156,20 @@ The devcontainer uses:
 - **Extensions:** Complete VS Code data science extension pack
 
 This provides a professional data science development environment that "just works" for education.
+
+---
+
+## 👩‍🏫 For Instructors
+
+This repository is configured as a GitHub Classroom template with hidden autograding. To set up:
+
+1. **Enable autograding** before importing to GitHub Classroom:
+   ```bash
+   bash .config/classroom/setup-autograding.sh
+   ```
+
+2. **Import to GitHub Classroom** as a template repository
+
+3. **Students receive clean repositories** without visible autograding configuration
+
+📖 See `.config/classroom/README.md` for detailed instructor setup instructions.

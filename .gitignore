@@ -16,6 +16,13 @@ env/
 *.db
 *.sqlite
 
+# GitHub Classroom autograding (hide from students)
+.github/classroom/
+.github/workflows/classroom.yml
+
+# Keep the hidden config directory
+!.config/
+
 # Data files (uncomment to ignore large datasets)
 # data/raw/*
 # data/processed/*
