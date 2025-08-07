@@ -24,9 +24,14 @@ jobs:
         with:
           r-version: '4.3'
           
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+          
       - name: Install R dependencies
         run: |
-          R -e "install.packages(c('tidyverse', 'readxl'), repos='https://cran.rstudio.com/')"
+          R -e "install.packages(c('jsonlite', 'tidyverse', 'readxl'), repos='https://cran.rstudio.com/')"
           
       - name: Run tests
         uses: education/autograding@v1

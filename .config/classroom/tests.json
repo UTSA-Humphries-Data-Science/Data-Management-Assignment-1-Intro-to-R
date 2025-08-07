@@ -18,17 +18,67 @@
       "output": "",
       "comparison": "included",
       "timeout": 10,
-      "points": 10
+      "points": 5
     },
     {
-      "name": "Check Notebook Content",
-      "setup": "",
-      "run": "grep -q 'sales_df.*read_csv' assignment/Homework/homework_lesson_1.ipynb && grep -q 'ratings_df.*read_excel' assignment/Homework/homework_lesson_1.ipynb",
+      "name": "Install Required R Packages",
+      "setup": "cd /workspaces/Data-Management-Assignment-1-Intro-to-R",
+      "run": "R -e \"install.packages(c('jsonlite', 'tidyverse', 'readxl'), repos='https://cran.rstudio.com/', quiet=TRUE)\"",
       "input": "",
       "output": "",
       "comparison": "included",
+      "timeout": 120,
+      "points": 0
+    },
+    {
+      "name": "Check Code Attempts Data Import",
+      "setup": "",
+      "run": "grep -c 'read_csv\\|read_excel' assignment/Homework/homework_lesson_1.ipynb",
+      "input": "",
+      "output": "",
+      "comparison": "regex",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test Data Import Functionality",
+      "setup": "cd /workspaces/Data-Management-Assignment-1-Intro-to-R && cp .config/classroom/autograder.R .",
+      "run": "Rscript autograder.R assignment/Homework/homework_lesson_1.ipynb data_import",
+      "input": "",
+      "output": "PASS",
+      "comparison": "regex",
+      "timeout": 60,
+      "points": 20
+    },
+    {
+      "name": "Test Required Packages Loading",
+      "setup": "cd /workspaces/Data-Management-Assignment-1-Intro-to-R && cp .config/classroom/autograder.R .",
+      "run": "Rscript autograder.R assignment/Homework/homework_lesson_1.ipynb packages",
+      "input": "",
+      "output": "PASS",
+      "comparison": "included",
+      "timeout": 30,
+      "points": 10
+    },
+    {
+      "name": "Test Data Type Handling",
+      "setup": "cd /workspaces/Data-Management-Assignment-1-Intro-to-R && cp .config/classroom/autograder.R .",
+      "run": "Rscript autograder.R assignment/Homework/homework_lesson_1.ipynb data_types",
+      "input": "",
+      "output": "PASS",
+      "comparison": "included",
       "timeout": 30,
       "points": 15
+    },
+    {
+      "name": "Check Data Inspection Commands Used",
+      "setup": "",
+      "run": "grep -E 'head\\(|str\\(|summary\\(' assignment/Homework/homework_lesson_1.ipynb | wc -l",
+      "input": "",
+      "output": "",
+      "comparison": "regex",
+      "timeout": 10,
+      "points": 5
     }
   ]
 }
