@@ -3,6 +3,8 @@
 **Due Date:** [Your instructor will specify]  
 **Points:** 30 points total
 
+**📋 SUBMISSION INSTRUCTIONS**: See [GITHUB_CLASSROOM_SUBMISSION.md](../../GITHUB_CLASSROOM_SUBMISSION.md) for complete submission guide.
+
 **Instructions:**
 
 *   Complete the following tasks in the Jupyter notebook `homework_lesson_1.ipynb` using the R kernel.
@@ -53,14 +55,51 @@ Perform the following inspection tasks for each of the three data frames you imp
 Before submitting your assignment, make sure you have:
 
 - [ ] Completed the Jupyter notebook `homework_lesson_1.ipynb` in this folder
-- [ ] Run all cells to show output
+- [ ] Run all cells to show output (Cell → Run All)
 - [ ] Added your name and date at the top of the notebook
 - [ ] Completed all tasks in Parts 1, 2, and 3
 - [ ] Added markdown explanations and observations
 - [ ] Answered all reflection questions
 - [ ] Saved the notebook (Ctrl+S or Cmd+S)
-- [ ] Committed your changes: `git add . && git commit -m "Complete assignment 1"`
-- [ ] Pushed to GitHub: `git push origin main`
+- [ ] Committed your changes: `git add assignment/Homework/homework_lesson_1.ipynb && git commit -m "Complete assignment 1"`
+- [ ] Pushed to GitHub Classroom: `git push origin main`
+- [ ] Verified your submission appears on GitHub online
+
+## 🚀 How to Submit to GitHub Classroom
+
+### Quick Submission Steps:
+
+1. **Save your completed notebook** (Ctrl+S)
+
+2. **Open terminal in Codespaces** (Terminal → New Terminal)
+
+3. **Submit your work:**
+   ```bash
+   # Navigate to the repository root (if not already there)
+   cd /workspaces/Data-Management-Assignment-1-Intro-to-R
+   
+   # Add your notebook
+   git add assignment/Homework/homework_lesson_1.ipynb
+   
+   # Commit your work
+   git commit -m "Submit homework lesson 1 - [Your Name]"
+   
+   # Push to GitHub Classroom
+   git push origin main
+   ```
+
+4. **Verify submission:**
+   - Go to your GitHub repository in a web browser
+   - Navigate to `assignment/Homework/`
+   - Click on your notebook to see your completed work
+   - Check the commit timestamp to confirm it's recent
+
+### ✅ Submission Confirmation
+You'll know your assignment was submitted successfully when:
+- You see "Everything up-to-date" or similar success message after `git push`
+- Your notebook appears in your GitHub repository online
+- The file shows your completed code and outputs
+- GitHub Classroom may run automated tests (you'll see results in the Actions tab)
 
 ## 🆘 Getting Help
 

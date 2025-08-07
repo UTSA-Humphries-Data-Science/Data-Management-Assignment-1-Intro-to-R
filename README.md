@@ -1,4 +1,8 @@
-# Data Management Assignment 1: Introduction to R
+# Data Management Assignment## 📝 Assignment Instructions
+
+Your assignment is located in the `assignment/Homework/` folder. Complete all tasks in the README file there.
+
+**🚨 IMPORTANT**: For detailed submission instructions, see [GITHUB_CLASSROOM_SUBMISSION.md](GITHUB_CLASSROOM_SUBMISSION.md) Introduction to R
 
 Welcome to your first data management assignment! This repository contains a complete R environment ready for data analysis.
 
@@ -43,7 +47,7 @@ Your assignment is located in the `assignment/Homework/` folder. Complete all ta
 └── scripts/                # Environment setup scripts (don't modify)
 ```
 
-## 💾 How to Submit Your Assignment
+## 💾 How to Submit Your Assignment to GitHub Classroom
 
 ### Step 1: Complete Your Work
 - Open the Jupyter notebook `assignment/Homework/homework_lesson_1.ipynb`
@@ -51,22 +55,36 @@ Your assignment is located in the `assignment/Homework/` folder. Complete all ta
 - Run all cells to show your output
 - Save the notebook (Ctrl+S or Cmd+S)
 
-### Step 2: Save and Commit Your Changes
+### Step 2: Check Your Work
+Before submitting, make sure:
+- All cells have been executed and show output
+- You've answered all reflection questions
+- Your name and date are filled in at the top
+- The notebook saves without errors
+
+### Step 3: Submit via Git
 ```bash
-# Add your files to git
-git add assignment/Homework/
+# Add your completed notebook to git
+git add assignment/Homework/homework_lesson_1.ipynb
 
 # Commit with a descriptive message
 git commit -m "Complete homework assignment 1"
 
-# Push to GitHub (this submits your assignment)
+# Push to GitHub Classroom (this submits your assignment)
 git push origin main
 ```
 
-### Step 3: Verify Submission
-- Go to your GitHub repository online
-- Check that your files appear in the `assignment/Homework/` folder
-- GitHub Classroom will automatically grade your submission
+### Step 4: Verify Your Submission
+1. Go to your GitHub repository online (check the URL in your browser)
+2. Navigate to `assignment/Homework/`
+3. Click on `homework_lesson_1.ipynb` to verify it shows your completed work
+4. Check that the "Last commit" timestamp is recent
+
+### ⚠️ Important Submission Notes
+- **Deadline**: Submit before the due date - late submissions may not be accepted
+- **Multiple submissions**: You can push multiple times before the deadline (your latest submission counts)
+- **Verification**: Always check your GitHub repository online to confirm your work is there
+- **Auto-grading**: GitHub Classroom will automatically run basic tests on your submission
 
 ## 🧪 Environment Details
 
