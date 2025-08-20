@@ -4,12 +4,8 @@
 # This script extracts and runs R code from the Jupyter notebook to test functionality
 
 library(jsonlite)
-
-# Load other packages only if needed for code execution tests
-load_data_packages <- function() {
-  library(tidyverse, quietly = TRUE)
-  library(readxl, quietly = TRUE)
-}
+library(tidyverse, quietly = TRUE)
+library(readxl, quietly = TRUE)
 
 # Function to extract R code from Jupyter notebook
 extract_r_code <- function(notebook_path) {
@@ -143,19 +139,42 @@ test_data_types <- function() {
 
 test_reflection_questions <- function() {
   tryCatch({
-    # Get the notebook path
+    # Get the notebook content
     notebook_path <- get("notebook_file", envir = .GlobalEnv)
+    notebook <- fromJSON(notebook_path, simplifyVector = FALSE)
     
-    # Use separate reflection checker to avoid package loading issues
-    result <- system2("Rscript", 
-                     args = c(".config/classroom/reflection_checker.R", notebook_path),
-                     stdout = TRUE, stderr = TRUE)
+    # Look for reflection question responses
+    reflection_responses <- 0
+    total_questions <- 3  # We know there are 3 questions
     
-    if (length(result) > 0) {
-      return(result[1])  # Return the first line of output
-    } else {
-      return("FAIL: No reflection response detected")
+    # Search for markdown cells with actual responses (not just "[Write your response here]")
+    for (cell in notebook$cells) {
+      if (cell$cell_type == "markdown") {
+        cell_content <- paste(cell$source, collapse = " ")
+        
+        # Check if this cell contains a student response to reflection questions
+        if (grepl("\\*\\*Your Answer:\\*\\*", cell_content)) {
+          # Look for actual content after "Your Answer:"
+          content_after_answer <- gsub(".*\\*\\*Your Answer:\\*\\*", "", cell_content)
+          content_after_answer <- trimws(gsub("\\[.*?\\]", "", content_after_answer))
+          
+          # If there's substantial content (more than just placeholder text)
+          if (nchar(content_after_answer) > 20 && 
+              !grepl("Write your response here|TODO|FIXME", content_after_answer)) {
+            reflection_responses <- reflection_responses + 1
+          }
+        }
+      }
     }
+    
+    if (reflection_responses >= total_questions) {
+      return("PASS")
+    } else if (reflection_responses > 0) {
+      return(paste("PARTIAL PASS:", reflection_responses, "of", total_questions, "questions answered"))
+    } else {
+      return("FAIL: No reflection questions answered with substantive content")
+    }
+    
   }, error = function(e) {
     return(paste("FAIL:", e$message))
   })
@@ -175,26 +194,21 @@ main <- function() {
   # Store notebook path for access by test functions
   assign("notebook_file", notebook_path, envir = .GlobalEnv)
   
-  # Extract and execute R code from notebook (skip for reflection test)
-  if (test_name != "reflection") {
-    # Load data packages for code execution tests
-    load_data_packages()
+  # Extract and execute R code from notebook
+  tryCatch({
+    r_code <- extract_r_code(notebook_path)
     
-    tryCatch({
-      r_code <- extract_r_code(notebook_path)
-      
-      # Store extracted code for analysis
-      assign("extracted_code", r_code, envir = .GlobalEnv)
-      
-      # Only execute if there's actual code
-      if (nchar(trimws(r_code)) > 0) {
-        eval(parse(text = r_code))
-      }
-    }, error = function(e) {
-      cat("FAIL: Error executing notebook code -", e$message, "\n")
-      quit(status = 1)
-    })
-  }
+    # Store extracted code for analysis
+    assign("extracted_code", r_code, envir = .GlobalEnv)
+    
+    # Only execute if there's actual code
+    if (nchar(trimws(r_code)) > 0) {
+      eval(parse(text = r_code))
+    }
+  }, error = function(e) {
+    cat("FAIL: Error executing notebook code -", e$message, "\n")
+    quit(status = 1)
+  })
   
   # Run the specified test
   result <- switch(test_name,
