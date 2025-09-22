@@ -15,66 +15,173 @@ def parse_old_feedback_format(feedback_list):
         'element_scores': {},
         'code_issues': [],
         'question_analysis': {},
-        'detailed_feedback': feedback_list,
-        'overall_assessment': ''
+        'detailed_feedback': [],
+        'overall_assessment': '',
+        'code_fixes': []
     }
     
-    # Extract scores from the feedback text
+    # Extract scores and organize content
     for item in feedback_list:
         if isinstance(item, str):
-            # Extract element scores
+            # Extract element scores with better parsing
             if 'Working Directory' in item and 'points' in item:
-                score_match = re.search(r'(\d+\.?\d*)/(\d+\.?\d*)', item)
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
                 if score_match:
                     result['element_scores']['working_directory'] = float(score_match.group(1))
+                result['detailed_feedback'].append(item)
             
             elif 'Package Loading' in item and 'points' in item:
-                score_match = re.search(r'(\d+\.?\d*)/(\d+\.?\d*)', item)
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
                 if score_match:
                     result['element_scores']['package_loading'] = float(score_match.group(1))
+                result['detailed_feedback'].append(item)
             
-            elif 'Import' in item and 'points' in item:
-                score_match = re.search(r'(\d+\.?\d*)/(\d+\.?\d*)', item)
+            elif ('CSV Import' in item or 'Excel Import' in item) and 'points' in item:
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
                 if score_match:
                     if 'CSV' in item:
                         result['element_scores']['csv_import'] = float(score_match.group(1))
                     elif 'Excel' in item:
                         result['element_scores']['excel_import'] = float(score_match.group(1))
+                result['detailed_feedback'].append(item)
             
             elif 'Data Inspection' in item and 'points' in item:
-                score_match = re.search(r'(\d+\.?\d*)/(\d+\.?\d*)', item)
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
                 if score_match:
                     result['element_scores']['data_inspection'] = float(score_match.group(1))
+                result['detailed_feedback'].append(item)
             
             elif 'Reflection Questions' in item and 'points' in item:
-                score_match = re.search(r'(\d+\.?\d*)/(\d+\.?\d*)', item)
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
                 if score_match:
                     result['element_scores']['reflection_questions'] = float(score_match.group(1))
+                result['detailed_feedback'].append(item)
             
             # Extract code issues
             elif 'ERROR:' in item:
                 result['code_issues'].append(item)
             
-            # Extract overall assessment
-            elif any(phrase in item for phrase in ['Good Job!', 'Excellent Work!', 'Keep Working!']):
+            # Extract code fixes (the detailed R code solutions)
+            elif '🔧' in item and ('```r' in item or 'Fix' in item):
+                result['code_fixes'].append(item)
+            
+            # Extract overall assessment (this contains the code fixes)
+            elif any(phrase in item for phrase in ['Good Job!', 'Excellent Work!', 'Keep Working!', 'Strong work!']):
                 result['overall_assessment'] = item
+                # Also add to code_fixes if it contains code solutions
+                if '🔧' in item:
+                    result['code_fixes'].append(item)
+            
+            # Extract reflection question details
+            elif 'Data Types Analysis' in item:
+                # Parse detailed reflection feedback
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
+                if score_match:
+                    result['question_analysis']['data_types'] = {
+                        'score': float(score_match.group(1)), 
+                        'max_score': float(score_match.group(2)), 
+                        'quality': 'Good',
+                        'detailed_feedback': item
+                    }
+            
+            elif 'Data Quality Assessment' in item:
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
+                if score_match:
+                    result['question_analysis']['data_quality'] = {
+                        'score': float(score_match.group(1)), 
+                        'max_score': float(score_match.group(2)), 
+                        'quality': 'Good',
+                        'detailed_feedback': item
+                    }
+            
+            elif 'Analysis Readiness' in item:
+                score_match = re.search(r'\((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
+                if score_match:
+                    result['question_analysis']['analysis_readiness'] = {
+                        'score': float(score_match.group(1)), 
+                        'max_score': float(score_match.group(2)), 
+                        'quality': 'Satisfactory',
+                        'detailed_feedback': item
+                    }
     
-    # Parse reflection questions
+    # Parse summary scores from REFLECTION QUESTIONS ANALYSIS section
     for item in feedback_list:
-        if isinstance(item, str) and 'Data Types:' in item:
-            result['question_analysis']['data_types'] = {
-                'score': 3.8, 'max_score': 4, 'quality': 'Excellent'
-            }
-        elif isinstance(item, str) and 'Data Quality:' in item:
-            result['question_analysis']['data_quality'] = {
-                'score': 3.8, 'max_score': 4, 'quality': 'Excellent'
-            }
-        elif isinstance(item, str) and 'Analysis Readiness:' in item:
-            result['question_analysis']['analysis_readiness'] = {
-                'score': 2.7, 'max_score': 4.5, 'quality': 'Satisfactory'
-            }
+        if isinstance(item, str):
+            if 'Data Types: Excellent' in item:
+                match = re.search(r'Data Types: (\w+) \((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
+                if match:
+                    result['question_analysis']['data_types'] = {
+                        'score': float(match.group(2)), 
+                        'max_score': float(match.group(3)), 
+                        'quality': match.group(1)
+                    }
+            elif 'Data Quality: Excellent' in item:
+                match = re.search(r'Data Quality: (\w+) \((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
+                if match:
+                    result['question_analysis']['data_quality'] = {
+                        'score': float(match.group(2)), 
+                        'max_score': float(match.group(3)), 
+                        'quality': match.group(1)
+                    }
+            elif 'Analysis Readiness: Satisfactory' in item:
+                match = re.search(r'Analysis Readiness: (\w+) \((\d+\.?\d*)/(\d+\.?\d*) points\)', item)
+                if match:
+                    result['question_analysis']['analysis_readiness'] = {
+                        'score': float(match.group(2)), 
+                        'max_score': float(match.group(3)), 
+                        'quality': match.group(1)
+                    }
     
     return result
+
+def create_assignment_zip(grader, assignment_id: int, assignment_name: str):
+    """Create a zip file of all reports for an assignment and offer download"""
+    try:
+        import zipfile
+        import tempfile
+        from pathlib import Path
+        
+        # Clean assignment name for folder
+        clean_assignment = re.sub(r'[^\w\s-]', '', assignment_name).replace(' ', '_')
+        assignment_folder = os.path.join("reports", clean_assignment)
+        
+        if not os.path.exists(assignment_folder):
+            st.error(f"No reports found for {assignment_name}. Generate reports first.")
+            return
+        
+        # Count PDF files
+        pdf_files = list(Path(assignment_folder).glob("*.pdf"))
+        if not pdf_files:
+            st.error(f"No PDF reports found in {assignment_name} folder.")
+            return
+        
+        # Create zip file
+        zip_filename = f"{clean_assignment}_Reports_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        zip_path = os.path.join("reports", zip_filename)
+        
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for pdf_file in pdf_files:
+                zipf.write(pdf_file, pdf_file.name)
+        
+        # Offer download
+        with open(zip_path, 'rb') as f:
+            st.download_button(
+                label=f"📥 Download {assignment_name} Reports ({len(pdf_files)} files)",
+                data=f.read(),
+                file_name=zip_filename,
+                mime="application/zip",
+                key=f"download_zip_{assignment_id}"
+            )
+        
+        st.success(f"✅ Created zip file with {len(pdf_files)} reports!")
+        
+        # Clean up zip file after a delay (optional)
+        # os.remove(zip_path)  # Uncomment if you want to auto-delete
+        
+    except Exception as e:
+        st.error(f"Error creating zip file: {str(e)}")
+        import traceback
+        st.error(f"Details: {traceback.format_exc()}")
 
 def view_results_page(grader):
     st.header("📊 View Results")
@@ -159,8 +266,14 @@ def view_results_page(grader):
     
     with col3:
         if not submissions.empty:
-            if st.button("📝 Generate All Reports"):
-                st.session_state.generate_all_reports = True
+            col3a, col3b = st.columns(2)
+            with col3a:
+                if st.button("📝 Generate All Reports"):
+                    st.session_state.generate_all_reports = True
+            
+            with col3b:
+                if st.button("📦 Download Zip"):
+                    create_assignment_zip(grader, assignment_id, selected_assignment)
             
             if st.session_state.get('generate_all_reports', False):
                 generate_student_reports_interface(grader, assignment_id, selected_assignment)
@@ -366,7 +479,8 @@ def generate_student_reports_interface(grader, assignment_id: int, assignment_na
                             # If it's the old format (list of strings), convert it
                             if isinstance(analysis_result, list):
                                 analysis_result = parse_old_feedback_format(analysis_result)
-                        except:
+                        except Exception as e:
+                            print(f"Error parsing feedback: {e}")
                             analysis_result = {'detailed_feedback': ['Feedback parsing error']}
                     else:
                         analysis_result = {'detailed_feedback': ['No detailed feedback available']}
@@ -423,23 +537,17 @@ def generate_individual_report(grader, submission_row, assignment_name):
         
         report_generator = PDFReportGenerator()
         
-        # Get the detailed analysis result
+        # Get the detailed analysis result and parse old format if needed
         if submission_row['ai_feedback']:
             try:
                 ai_feedback_data = json.loads(submission_row['ai_feedback'])
                 # Handle both list and dict formats
                 if isinstance(ai_feedback_data, list):
-                    analysis_result = {
-                        'detailed_feedback': ai_feedback_data,
-                        'element_scores': {},
-                        'missing_elements': [],
-                        'code_issues': [],
-                        'question_analysis': {},
-                        'overall_assessment': 'AI-generated feedback available.'
-                    }
+                    analysis_result = parse_old_feedback_format(ai_feedback_data)
                 else:
                     analysis_result = ai_feedback_data
-            except:
+            except Exception as e:
+                print(f"Error parsing individual report feedback: {e}")
                 analysis_result = {
                     'detailed_feedback': ['AI feedback available but could not be parsed'],
                     'element_scores': {},

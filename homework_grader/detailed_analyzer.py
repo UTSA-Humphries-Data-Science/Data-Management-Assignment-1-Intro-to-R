@@ -1407,7 +1407,7 @@ install.packages("readxl")
             # Create data directory in notebook location
             os.makedirs(target_data_dir, exist_ok=True)
             
-            # Copy required data files
+            # Copy required data files to support both working directory approaches
             required_files = [
                 'sales_data.csv',
                 'ratings_data.xlsx',  # This might not exist, so we'll create it
@@ -1422,6 +1422,12 @@ install.packages("readxl")
                 if os.path.exists(source_file):
                     shutil.copy2(source_file, target_file)
                     print(f"📁 Copied {filename} to execution directory")
+                    
+                    # Also copy to notebook directory root for students who don't use data/ folder
+                    root_target = os.path.join(notebook_dir, filename)
+                    if not os.path.exists(root_target):
+                        shutil.copy2(source_file, root_target)
+                        print(f"📁 Also copied {filename} to notebook root for direct access")
             
             # Create ratings_data.xlsx if it doesn't exist (combine CSV files into Excel)
             ratings_xlsx_path = os.path.join(target_data_dir, 'ratings_data.xlsx')
