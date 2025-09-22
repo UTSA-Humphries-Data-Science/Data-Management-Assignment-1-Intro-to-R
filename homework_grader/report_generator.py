@@ -20,14 +20,6 @@ class PDFReportGenerator:
     def __init__(self, output_dir: str = "reports"):
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
-    
-    def _get_assignment_folder(self, assignment_id: str) -> str:
-        """Create and return assignment-specific folder path"""
-        # Clean assignment name for folder
-        clean_assignment = re.sub(r'[^\w\s-]', '', assignment_id).replace(' ', '_')
-        assignment_folder = os.path.join(self.output_dir, clean_assignment)
-        os.makedirs(assignment_folder, exist_ok=True)
-        return assignment_folder
         
         # Set up styles
         self.styles = getSampleStyleSheet()
@@ -52,6 +44,14 @@ class PDFReportGenerator:
             bulletIndent=10,
             spaceAfter=6
         ))
+    
+    def _get_assignment_folder(self, assignment_id: str) -> str:
+        """Create and return assignment-specific folder path"""
+        # Clean assignment name for folder
+        clean_assignment = re.sub(r'[^\w\s-]', '', assignment_id).replace(' ', '_')
+        assignment_folder = os.path.join(self.output_dir, clean_assignment)
+        os.makedirs(assignment_folder, exist_ok=True)
+        return assignment_folder
     
     def _clean_text(self, text: str) -> str:
         """Clean text for PDF generation - simple removal approach"""

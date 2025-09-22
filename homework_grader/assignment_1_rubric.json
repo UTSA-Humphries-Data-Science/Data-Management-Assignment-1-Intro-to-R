@@ -1,216 +1,131 @@
 {
-  "assignment_name": "Homework 1 - R Environment Setup and Data Import",
+  "assignment_name": "Homework 1 - Introduction to R: Environment Setup and Data Analysis",
   "total_points": 37.5,
   "grading_strategy": {
     "automated_testing": 22.5,
     "manual_review": 15
   },
   "rubric_categories": {
-    "environment_setup": {
-      "points": 5.5,
-      "description": "R/RStudio environment setup and navigation",
-      "automated_checks": [
-        "Working directory management (getwd() usage)",
-        "Proper R syntax and execution",
-        "Environment navigation demonstrated"
-      ],
-      "criteria": {
-        "excellent": {
-          "points": 15,
-          "description": "Demonstrates clear understanding of R environment, proper use of getwd(), shows navigation skills"
-        },
-        "good": {
-          "points": 12,
-          "description": "Shows basic R environment usage with minor issues"
-        },
-        "satisfactory": {
-          "points": 9,
-          "description": "Basic environment setup with some confusion or errors"
-        },
-        "needs_improvement": {
-          "points": 6,
-          "description": "Minimal environment setup, significant issues"
-        },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No evidence of proper environment setup"
-        }
-      }
-    },
-    "package_management": {
-      "points": 5.5,
-      "description": "Package installation and loading (tidyverse, readxl)",
-      "automated_checks": [
-        "Correct library() calls for tidyverse and readxl",
-        "Packages loaded without errors",
-        "Understanding of install vs load difference"
-      ],
-      "criteria": {
-        "excellent": {
-          "points": 15,
-          "description": "Correctly loads all required packages, demonstrates understanding of install vs load"
-        },
-        "good": {
-          "points": 12,
-          "description": "Loads most packages correctly with minor issues"
-        },
-        "satisfactory": {
-          "points": 9,
-          "description": "Basic package loading with some errors or confusion"
-        },
-        "needs_improvement": {
-          "points": 6,
-          "description": "Attempts package loading but with significant issues"
-        },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No evidence of proper package management"
-        }
-      }
-    },
-    "data_import": {
+    "part1_environment_setup": {
       "points": 7.5,
-      "description": "Successful import of all required datasets (sales_df, ratings_df, comments_df)",
-      "automated_checks": [
-        "sales_df exists and has proper structure",
-        "ratings_df exists and has proper structure",
-        "comments_df exists and has proper structure",
-        "Correct use of read_csv() and read_excel() functions",
-        "Data imported without errors"
-      ],
-      "criteria": {
-        "excellent": {
-          "points": 20,
-          "description": "All three datasets imported correctly with proper variable names and structure"
+      "description": "Part 1: Setting Up Environment and Importing Data",
+      "subcategories": {
+        "working_directory": {
+          "points": 2,
+          "description": "1.1 Working Directory - Proper use of getwd()",
+          "automated_checks": ["getwd() function used", "Output displayed"]
         },
-        "good": {
-          "points": 16,
-          "description": "Most datasets imported correctly, minor issues with structure or naming"
+        "package_loading": {
+          "points": 2,
+          "description": "1.2 Package Loading - tidyverse and readxl loaded correctly",
+          "automated_checks": [
+            "library(tidyverse) executed",
+            "library(readxl) executed",
+            "No loading errors"
+          ]
         },
-        "satisfactory": {
-          "points": 12,
-          "description": "Some datasets imported, basic functionality demonstrated"
+        "csv_import": {
+          "points": 1.75,
+          "description": "1.3 Data Import CSV - sales_df created from sales_data.csv",
+          "automated_checks": [
+            "read_csv() or read.csv() used",
+            "sales_df variable created",
+            "Success message printed"
+          ]
         },
-        "needs_improvement": {
-          "points": 8,
-          "description": "Attempts data import but with significant errors"
-        },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No successful data import demonstrated"
+        "excel_import": {
+          "points": 1.75,
+          "description": "1.4 Data Import Excel - ratings_df and comments_df from customer_feedback.xlsx",
+          "automated_checks": [
+            "read_excel() used for both sheets",
+            "ratings_df created",
+            "comments_df created",
+            "Success message printed"
+          ]
         }
       }
     },
-    "data_inspection": {
-      "points": 4,
-      "description": "Basic data inspection using head(), str(), summary()",
-      "automated_checks": [
-        "Use of head() function on datasets",
-        "Use of str() function to examine structure",
-        "Use of summary() function for statistical overview",
-        "Output displays correctly"
-      ],
-      "criteria": {
-        "excellent": {
-          "points": 10,
-          "description": "Comprehensive data inspection using all required functions with clear output"
+    "part2_data_inspection": {
+      "points": 15,
+      "description": "Part 2: Basic Data Inspection",
+      "subcategories": {
+        "sales_inspection": {
+          "points": 5,
+          "description": "2.1 Sales Data Inspection - head(), str(), summary() + observations",
+          "automated_checks": [
+            "head(sales_df) used",
+            "str(sales_df) used",
+            "summary(sales_df) used"
+          ],
+          "manual_review": [
+            "Quality of observations about sales_df structure and content"
+          ]
         },
-        "good": {
-          "points": 8,
-          "description": "Good use of inspection functions with minor omissions"
+        "ratings_inspection": {
+          "points": 5,
+          "description": "2.2 Ratings Data Inspection - head(), str(), summary() + observations",
+          "automated_checks": [
+            "head(ratings_df) used",
+            "str(ratings_df) used",
+            "summary(ratings_df) used"
+          ],
+          "manual_review": [
+            "Quality of observations about ratings_df structure and content"
+          ]
         },
-        "satisfactory": {
-          "points": 6,
-          "description": "Basic data inspection, some functions used correctly"
-        },
-        "needs_improvement": {
-          "points": 4,
-          "description": "Minimal data inspection, limited function usage"
-        },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No evidence of proper data inspection"
+        "comments_inspection": {
+          "points": 5,
+          "description": "2.3 Comments Data Inspection - head(), str(), summary() + observations",
+          "automated_checks": [
+            "head(comments_df) used",
+            "str(comments_df) used",
+            "summary(comments_df) used"
+          ],
+          "manual_review": [
+            "Quality of observations about comments_df structure and content"
+          ]
         }
       }
     },
     "reflection_questions": {
-      "points": 7.5,
-      "description": "Understanding of data types, import process, and data quality concepts",
-      "manual_review": true,
-      "criteria": {
-        "excellent": {
-          "points": 20,
-          "description": "Demonstrates deep understanding of data types, clear explanation of import process, insightful data quality observations"
+      "points": 15,
+      "description": "Reflection Questions - Critical thinking and analysis",
+      "subcategories": {
+        "general_reflection": {
+          "points": 3,
+          "description": "General reflection on data structure, content, quality and organization",
+          "manual_review": [
+            "Demonstrates understanding of data structure differences",
+            "Shows awareness of data quality issues",
+            "Provides thoughtful insights"
+          ]
         },
-        "good": {
-          "points": 16,
-          "description": "Good understanding with clear explanations, minor gaps in comprehension"
-        },
-        "satisfactory": {
-          "points": 12,
-          "description": "Basic understanding demonstrated, adequate explanations"
-        },
-        "needs_improvement": {
-          "points": 8,
-          "description": "Limited understanding, unclear or incomplete explanations"
-        },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No evidence of understanding or missing responses"
-        }
-      }
-    },
-    "code_quality": {
-      "points": 3.75,
-      "description": "Comments, organization, and best practices",
-      "manual_review": true,
-      "criteria": {
-        "excellent": {
-          "points": 10,
-          "description": "Well-commented code, excellent organization, follows R best practices"
-        },
-        "good": {
-          "points": 8,
-          "description": "Good comments and organization, mostly follows best practices"
-        },
-        "satisfactory": {
-          "points": 6,
-          "description": "Basic comments and organization, some best practices followed"
-        },
-        "needs_improvement": {
+        "data_types_analysis": {
           "points": 4,
-          "description": "Minimal comments, poor organization, few best practices"
+          "description": "Question 1: Data Types Analysis - Date and Amount columns in sales_df",
+          "manual_review": [
+            "Correctly identifies data types",
+            "Explains appropriateness for business analytics",
+            "Shows understanding of type importance"
+          ]
         },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No comments, poor organization, no evidence of best practices"
-        }
-      }
-    },
-    "data_interpretation": {
-      "points": 3.75,
-      "description": "Analysis of initial data inspection results",
-      "manual_review": true,
-      "criteria": {
-        "excellent": {
-          "points": 10,
-          "description": "Insightful analysis of data characteristics, identifies patterns and potential issues"
-        },
-        "good": {
-          "points": 8,
-          "description": "Good analysis with some insights into data characteristics"
-        },
-        "satisfactory": {
-          "points": 6,
-          "description": "Basic analysis, describes what is observed in the data"
-        },
-        "needs_improvement": {
+        "data_quality_assessment": {
           "points": 4,
-          "description": "Limited analysis, minimal interpretation of results"
+          "description": "Question 2: Data Quality Assessment - Issues across all datasets",
+          "manual_review": [
+            "Identifies missing values, type issues, patterns",
+            "Shows systematic thinking about data quality",
+            "Considers impact on analysis"
+          ]
         },
-        "unsatisfactory": {
-          "points": 0,
-          "description": "No analysis or interpretation provided"
+        "analysis_readiness": {
+          "points": 4,
+          "description": "Question 3: Analysis Readiness - Comparing datasets for preprocessing needs",
+          "manual_review": [
+            "Compares datasets systematically",
+            "Justifies which needs most/least preprocessing",
+            "Shows practical understanding of data preparation"
+          ]
         }
       }
     }
@@ -221,58 +136,68 @@
         "name": "sales_df",
         "type": "data.frame",
         "min_rows": 1,
-        "required_columns": ["ID", "Product", "Sales"],
-        "points": 7
+        "points": 5,
+        "description": "Sales data imported successfully"
       },
       {
         "name": "ratings_df",
         "type": "data.frame",
         "min_rows": 1,
-        "points": 7
+        "points": 2.5,
+        "description": "Ratings data from Excel imported"
       },
       {
         "name": "comments_df",
         "type": "data.frame",
         "min_rows": 1,
-        "points": 6
+        "points": 2.5,
+        "description": "Comments data from Excel imported"
       }
     ],
     "required_packages": [
       {
         "name": "tidyverse",
-        "points": 8
+        "points": 5,
+        "description": "tidyverse package loaded for data manipulation"
       },
       {
         "name": "readxl",
-        "points": 7
+        "points": 5,
+        "description": "readxl package loaded for Excel import"
       }
     ],
     "required_functions_used": [
       {
         "function": "getwd",
-        "points": 5
+        "points": 5,
+        "description": "Working directory checked"
       },
       {
         "function": "head",
-        "points": 5
+        "points": 10,
+        "description": "head() used on all three datasets"
       },
       {
         "function": "str",
-        "points": 5
+        "points": 10,
+        "description": "str() used on all three datasets"
       },
       {
         "function": "summary",
-        "points": 5
+        "points": 10,
+        "description": "summary() used on all three datasets"
       },
       {
         "function": "read_csv",
-        "points": 5
+        "points": 5,
+        "description": "CSV import function used correctly"
+      },
+      {
+        "function": "read_excel",
+        "points": 5,
+        "description": "Excel import function used correctly"
       }
-    ],
-    "code_execution": {
-      "all_cells_run": 10,
-      "no_errors": 10
-    }
+    ]
   },
   "submission_requirements": {
     "file_format": ".ipynb",

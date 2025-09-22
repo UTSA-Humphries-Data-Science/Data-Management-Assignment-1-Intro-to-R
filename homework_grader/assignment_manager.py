@@ -442,7 +442,26 @@ def parse_github_classroom_filename(filename):
         
         if len(parts) >= 3:
             username = parts[0]  # First part is usually lastnamefirstname
-            student_id = parts[1]  # Second part is usually the student ID number
+            
+            # Handle Canvas LATE submissions - LATE is inserted between name and student ID
+            student_id = parts[1]  # Default to second part
+            
+            # If we see LATE in the filename, it's a Canvas late submission marker
+            if 'LATE' in parts:
+                late_index = parts.index('LATE')
+                
+                # Look for numeric student ID after LATE marker
+                numeric_ids = [part for part in parts[late_index+1:] if part.isdigit() and len(part) > 3]
+                if numeric_ids:
+                    student_id = numeric_ids[0]  # Use first numeric ID found after LATE
+                else:
+                    # Look for numeric ID anywhere in the filename
+                    all_numeric_ids = [part for part in parts if part.isdigit() and len(part) > 3]
+                    if all_numeric_ids:
+                        student_id = all_numeric_ids[0]
+                    else:
+                        # If no numeric ID found, use LATE as the ID (Canvas export without student ID)
+                        student_id = 'LATE'
             
             # Check if there are explicit name parts later in the filename
             name_parts = []
@@ -462,8 +481,21 @@ def parse_github_classroom_filename(filename):
             elif len(name_parts) == 1:
                 return {'name': name_parts[0], 'id': student_id}
             
-            # Otherwise, try to parse the username (lastnamefirstname format)
-            parsed_name = parse_username_to_name(username)
+            # For Canvas LATE submissions, construct name from parts before LATE marker
+            if 'LATE' in parts:
+                late_index = parts.index('LATE')
+                # Use parts before LATE as name components
+                name_components = [part for part in parts[:late_index] if part.isalpha()]
+                if len(name_components) >= 2:
+                    parsed_name = ' '.join(name_components).title()
+                elif len(name_components) == 1:
+                    parsed_name = name_components[0].title()
+                else:
+                    parsed_name = parse_username_to_name(username)
+            else:
+                # Otherwise, try to parse the username (lastnamefirstname format)
+                parsed_name = parse_username_to_name(username)
+            
             return {'name': parsed_name, 'id': student_id}
         
         # Fallback for simpler formats

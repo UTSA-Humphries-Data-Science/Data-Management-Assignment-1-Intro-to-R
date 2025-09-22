@@ -472,32 +472,44 @@ def generate_student_reports_interface(grader, assignment_id: int, assignment_na
                 generated_reports = []
                 
                 for _, submission in submissions.iterrows():
-                    # Get the detailed analysis result and parse old format if needed
-                    if submission['ai_feedback']:
-                        try:
-                            analysis_result = json.loads(submission['ai_feedback'])
-                            # If it's the old format (list of strings), convert it
-                            if isinstance(analysis_result, list):
-                                analysis_result = parse_old_feedback_format(analysis_result)
-                        except Exception as e:
-                            print(f"Error parsing feedback: {e}")
-                            analysis_result = {'detailed_feedback': ['Feedback parsing error']}
-                    else:
-                        analysis_result = {'detailed_feedback': ['No detailed feedback available']}
-                    analysis_result['total_score'] = submission['ai_score']
-                    analysis_result['max_score'] = 37.5
-                    
-                    # Generate PDF report
-                    report_path = report_generator.generate_report(
-                        student_name=submission['student_name'],
-                        assignment_id=assignment_name,
-                        analysis_result=analysis_result
-                    )
-                    
-                    generated_reports.append({
-                        'student': submission['student_name'],
-                        'path': report_path
-                    })
+                    try:
+                        # Get the detailed analysis result and parse old format if needed
+                        if submission['ai_feedback']:
+                            try:
+                                analysis_result = json.loads(submission['ai_feedback'])
+                                # If it's the old format (list of strings), convert it
+                                if isinstance(analysis_result, list):
+                                    analysis_result = parse_old_feedback_format(analysis_result)
+                            except Exception as e:
+                                print(f"Error parsing feedback: {e}")
+                                analysis_result = {'detailed_feedback': ['Feedback parsing error']}
+                        else:
+                            analysis_result = {'detailed_feedback': ['No detailed feedback available']}
+                        analysis_result['total_score'] = submission['ai_score']
+                        analysis_result['max_score'] = 37.5
+                        
+                        # Clean student name for report generation
+                        student_name = submission['student_name'] or f"Student_{submission['student_id']}"
+                        # Clean problematic characters from student name
+                        student_name = re.sub(r'[*\[\]<>:"/\\|?]', '', student_name).strip()
+                        if not student_name:
+                            student_name = f"Student_{submission['student_id']}"
+                        
+                        # Generate PDF report
+                        report_path = report_generator.generate_report(
+                            student_name=student_name,
+                            assignment_id=assignment_name,
+                            analysis_result=analysis_result
+                        )
+                        
+                        generated_reports.append({
+                            'student': student_name,
+                            'path': report_path
+                        })
+                        
+                    except Exception as e:
+                        st.error(f"Failed to generate report for student {submission.get('student_name', 'Unknown')}: {str(e)}")
+                        continue
                 
                 if generated_reports:
                     st.success(f"✅ Generated reports for {len(generated_reports)} students!")

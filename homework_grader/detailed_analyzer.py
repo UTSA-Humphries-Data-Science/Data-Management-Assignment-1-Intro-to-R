@@ -1407,10 +1407,11 @@ install.packages("readxl")
             # Create data directory in notebook location
             os.makedirs(target_data_dir, exist_ok=True)
             
-            # Copy required data files to support both working directory approaches
+            # Copy required data files to support multiple working directory approaches
             required_files = [
                 'sales_data.csv',
-                'ratings_data.xlsx',  # This might not exist, so we'll create it
+                'customer_feedback.xlsx',  # The actual file students use
+                'ratings_data.xlsx',  # Alternative name
                 'customer_ratings.csv',  # Alternative
                 'customer_comments.csv'  # Alternative
             ]
@@ -1423,11 +1424,20 @@ install.packages("readxl")
                     shutil.copy2(source_file, target_file)
                     print(f"📁 Copied {filename} to execution directory")
                     
-                    # Also copy to notebook directory root for students who don't use data/ folder
+                    # Also copy to notebook directory root for students who set working directory to data
                     root_target = os.path.join(notebook_dir, filename)
                     if not os.path.exists(root_target):
                         shutil.copy2(source_file, root_target)
                         print(f"📁 Also copied {filename} to notebook root for direct access")
+            
+            # Create customer_feedback.xlsx if it doesn't exist (from separate CSV files)
+            customer_feedback_path = os.path.join(target_data_dir, 'customer_feedback.xlsx')
+            if not os.path.exists(customer_feedback_path):
+                self._create_customer_feedback_excel(source_data_dir, customer_feedback_path)
+                # Also copy to root
+                root_feedback_path = os.path.join(notebook_dir, 'customer_feedback.xlsx')
+                if not os.path.exists(root_feedback_path):
+                    shutil.copy2(customer_feedback_path, root_feedback_path)
             
             # Create ratings_data.xlsx if it doesn't exist (combine CSV files into Excel)
             ratings_xlsx_path = os.path.join(target_data_dir, 'ratings_data.xlsx')
@@ -1460,6 +1470,30 @@ install.packages("readxl")
             
         except Exception as e:
             print(f"⚠️ Could not create ratings_data.xlsx: {e}")
+    
+    def _create_customer_feedback_excel(self, source_data_dir: str, target_excel_path: str):
+        """Create customer_feedback.xlsx from CSV files"""
+        try:
+            import pandas as pd
+            
+            # Try to find ratings and comments CSV files
+            ratings_csv = os.path.join(source_data_dir, 'customer_ratings.csv')
+            comments_csv = os.path.join(source_data_dir, 'customer_comments.csv')
+            
+            if os.path.exists(ratings_csv) and os.path.exists(comments_csv):
+                # Read CSV files
+                ratings_df = pd.read_csv(ratings_csv)
+                comments_df = pd.read_csv(comments_csv)
+                
+                # Create Excel file with multiple sheets
+                with pd.ExcelWriter(target_excel_path, engine='openpyxl') as writer:
+                    ratings_df.to_excel(writer, sheet_name='ratings', index=False)
+                    comments_df.to_excel(writer, sheet_name='customer_feedback', index=False)
+                
+                print(f"📊 Created customer_feedback.xlsx with ratings and customer_feedback sheets")
+            
+        except Exception as e:
+            print(f"⚠️ Could not create customer_feedback.xlsx: {e}")
     
     def _detect_execution_environment(self) -> str:
         """Detect what execution environment is available"""
