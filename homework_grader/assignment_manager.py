@@ -7,6 +7,8 @@ from pathlib import Path
 import nbformat
 import shutil
 import tempfile
+from rubric_manager import RubricManager, load_predefined_rubrics
+from assignment_matcher import match_assignment_to_rubric, suggest_rubric_for_assignment, get_assignment_type_from_name
 
 def create_assignment_page(grader):
     st.header("📝 Create New Assignment")

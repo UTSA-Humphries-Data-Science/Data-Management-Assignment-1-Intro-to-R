@@ -18,6 +18,7 @@ import re
 
 # Import our modules
 from assignment_manager import create_assignment_page, upload_submissions_page
+from assignment_editor import assignment_management_page, get_assignment_rubric
 from training_interface import TrainingInterface
 from ai_grader import grade_submissions_page
 from grading_interface import view_results_page
@@ -151,7 +152,7 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.selectbox(
         "Choose a page:",
-        ["Dashboard", "Create Assignment", "Upload Submissions", "Grade Submissions", "View Results", "AI Training"]
+        ["Dashboard", "Assignment Management", "Upload Submissions", "Grade Submissions", "View Results", "AI Training"]
     )
     
     # Show model status in sidebar (optional - don't block UI)
@@ -169,8 +170,8 @@ def main():
     
     if page == "Dashboard":
         show_dashboard(grader)
-    elif page == "Create Assignment":
-        create_assignment_page(grader)
+    elif page == "Assignment Management":
+        assignment_management_page(grader)
     elif page == "Upload Submissions":
         upload_submissions_page(grader)
     elif page == "Grade Submissions":

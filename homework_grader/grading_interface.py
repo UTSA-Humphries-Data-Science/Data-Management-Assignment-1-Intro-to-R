@@ -134,6 +134,21 @@ def parse_old_feedback_format(feedback_list):
     
     return result
 
+def extract_name_from_path(notebook_path: str) -> str:
+    """Extract student name from notebook file path"""
+    if not notebook_path:
+        return None
+    
+    try:
+        from pathlib import Path
+        from assignment_manager import parse_github_classroom_filename
+        
+        filename = Path(notebook_path).stem
+        parsed_info = parse_github_classroom_filename(filename)
+        return parsed_info.get('name')
+    except:
+        return None
+
 def create_assignment_zip(grader, assignment_id: int, assignment_name: str):
     """Create a zip file of all reports for an assignment and offer download"""
     try:
@@ -422,14 +437,107 @@ def view_results_page(grader):
     
     with col1:
         if st.button("📊 Export Results to CSV"):
-            export_data = submissions[['student_id', 'ai_score', 'human_score', 'final_score', 'submission_date']]
-            csv = export_data.to_csv(index=False)
-            st.download_button(
-                label="Download CSV",
-                data=csv,
-                file_name=f"{selected_assignment}_results.csv",
-                mime="text/csv"
-            )
+            try:
+                # Get enhanced data with proper student information
+                conn_temp = sqlite3.connect(grader.db_path)
+                enhanced_data = pd.read_sql_query("""
+                    SELECT s.*, 
+                           COALESCE(st.name, 'Unknown') as student_name,
+                           st.student_id as student_id_number
+                    FROM submissions s
+                    LEFT JOIN students st ON s.student_id = st.id
+                    WHERE s.assignment_id = ?
+                    ORDER BY st.student_id
+                """, conn_temp, params=(assignment_id,))
+                conn_temp.close()
+                
+                if enhanced_data.empty:
+                    st.warning("No submissions found for export.")
+                    return
+                
+                # Clean and validate student names
+                def clean_student_name(row):
+                    name = row['student_name']
+                    student_id = row['student_id_number']
+                    notebook_path = row.get('notebook_path', '')
+                    
+                    # Handle malformed names (like "** [YOUR NAME HERE")
+                    if pd.isna(name) or name == 'Unknown' or '**' in str(name) or '[YOUR NAME HERE' in str(name):
+                        # Try to extract from filename first
+                        if notebook_path:
+                            try:
+                                from pathlib import Path
+                                filename = Path(notebook_path).stem
+                                extracted_name = extract_name_from_path(notebook_path)
+                                if extracted_name and extracted_name != 'Unknown':
+                                    return extracted_name
+                            except:
+                                pass
+                        # Fallback to student ID
+                        return f"Student_{student_id}" if student_id else "Unknown_Student"
+                    
+                    return str(name).strip()
+                
+                # Apply name cleaning
+                enhanced_data['cleaned_student_name'] = enhanced_data.apply(clean_student_name, axis=1)
+                
+                # Handle missing scores (replace NaN with appropriate values)
+                enhanced_data['ai_score'] = enhanced_data['ai_score'].fillna(0).round(2)
+                enhanced_data['human_score'] = enhanced_data['human_score'].fillna('')
+                enhanced_data['final_score'] = enhanced_data['final_score'].fillna(enhanced_data['ai_score']).round(2)
+                
+                # Format submission date for better readability
+                enhanced_data['submission_date'] = pd.to_datetime(enhanced_data['submission_date']).dt.strftime('%Y-%m-%d %H:%M')
+                
+                # Create final export with clean data
+                final_export = enhanced_data[[
+                    'student_id_number', 'cleaned_student_name', 'ai_score', 'human_score', 'final_score', 'submission_date'
+                ]].rename(columns={
+                    'student_id_number': 'Student ID',
+                    'cleaned_student_name': 'Student Name',
+                    'ai_score': 'AI Score', 
+                    'human_score': 'Manual Score',
+                    'final_score': 'Final Score',
+                    'submission_date': 'Submission Date'
+                })
+                
+                # Sort by Student ID for easier reading and gradebook import
+                final_export = final_export.sort_values('Student ID')
+                
+                # Generate CSV
+                csv = final_export.to_csv(index=False)
+                
+                # Show export statistics
+                graded_count = len(final_export[final_export['AI Score'] > 0])
+                avg_score = final_export[final_export['AI Score'] > 0]['AI Score'].mean() if graded_count > 0 else 0
+                
+                col_stat1, col_stat2, col_stat3 = st.columns(3)
+                with col_stat1:
+                    st.metric("Total Students", len(final_export))
+                with col_stat2:
+                    st.metric("Graded", graded_count)
+                with col_stat3:
+                    st.metric("Average Score", f"{avg_score:.1f}/37.5" if graded_count > 0 else "N/A")
+                
+                # Show preview
+                st.write("**Export Preview:**")
+                st.dataframe(final_export.head(10), use_container_width=True)
+                
+                # Download button
+                st.download_button(
+                    label=f"📊 Download Gradebook CSV ({len(final_export)} students)",
+                    data=csv,
+                    file_name=f"{selected_assignment}_gradebook_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime="text/csv",
+                    key=f"csv_export_{assignment_id}"
+                )
+                
+                st.success(f"✅ CSV export ready with {len(final_export)} student records!")
+                
+            except Exception as e:
+                st.error(f"Error creating CSV export: {str(e)}")
+                import traceback
+                st.error(f"Details: {traceback.format_exc()}")
     
     with col2:
         if st.button("📝 Generate Individual Reports"):

@@ -9,34 +9,119 @@ import json
 from typing import Dict, List, Tuple, Any
 
 class DetailedHomeworkAnalyzer:
-    def __init__(self):
-        self.required_elements = {
+    def __init__(self, assignment_id=None, rubric=None):
+        self.assignment_id = assignment_id
+        self.rubric = rubric
+        
+        # Load rubric-based elements or fall back to Assignment 1 defaults
+        if rubric and isinstance(rubric, dict) and 'rubric_elements' in rubric:
+            self.required_elements = self._parse_rubric_elements(rubric)
+        else:
+            # Fallback to Assignment 1 criteria for backward compatibility
+            self.required_elements = self._get_assignment_1_elements()
+    
+    def _parse_rubric_elements(self, rubric):
+        """Parse rubric JSON into required elements for analysis"""
+        elements = {}
+        rubric_elements = rubric.get('rubric_elements', {})
+        
+        for element_name, element_data in rubric_elements.items():
+            points = element_data.get('max_points', 0)
+            description = element_data.get('description', '')
+            
+            # Map rubric elements to analysis functions based on element name
+            if 'data_import' in element_name.lower() or 'import' in element_name.lower():
+                elements['data_import_assessment'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'data_import'
+                }
+            elif 'missing_value_identification' in element_name.lower():
+                elements['missing_value_identification'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'missing_values'
+                }
+            elif 'missing_value_treatment' in element_name.lower():
+                elements['missing_value_treatment'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'missing_treatment'
+                }
+            elif 'outlier_detection' in element_name.lower():
+                elements['outlier_detection'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'outlier_detection'
+                }
+            elif 'outlier_treatment' in element_name.lower():
+                elements['outlier_treatment'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'outlier_treatment'
+                }
+            elif 'methodology' in element_name.lower() or 'justification' in element_name.lower():
+                elements['methodology_justification'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'methodology'
+                }
+            elif 'reflection' in element_name.lower() or 'questions' in element_name.lower():
+                elements['reflection_questions'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'reflection'
+                }
+            elif 'documentation' in element_name.lower() or 'code' in element_name.lower():
+                elements['code_documentation'] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'documentation'
+                }
+            else:
+                # Generic element
+                elements[element_name] = {
+                    'description': description,
+                    'points': points,
+                    'type': 'generic'
+                }
+        
+        return elements
+    
+    def _get_assignment_1_elements(self):
+        """Fallback Assignment 1 elements for backward compatibility"""
+        return {
             'working_directory': {
                 'function': 'getwd()',
                 'description': 'Check current working directory',
-                'points': 2
+                'points': 2,
+                'type': 'working_directory'
             },
             'package_loading': {
                 'functions': ['library(tidyverse)', 'library(readxl)'],
                 'description': 'Load required packages',
-                'points': 4
+                'points': 4,
+                'type': 'package_loading'
             },
             'csv_import': {
                 'variable': 'sales_df',
                 'function': 'read_csv',
                 'description': 'Import CSV data into sales_df',
-                'points': 5
+                'points': 5,
+                'type': 'csv_import'
             },
             'excel_import': {
                 'variables': ['ratings_df', 'comments_df'],
                 'function': 'read_excel',
                 'description': 'Import Excel data into ratings_df and comments_df',
-                'points': 6
+                'points': 6,
+                'type': 'excel_import'
             },
             'data_inspection': {
                 'functions': ['head()', 'str()', 'summary()'],
                 'description': 'Perform data inspection on all datasets',
-                'points': 8
+                'points': 8,
+                'type': 'data_inspection'
             },
             'reflection_questions': {
                 'questions': [
@@ -45,7 +130,8 @@ class DetailedHomeworkAnalyzer:
                     'Analysis Readiness'
                 ],
                 'description': 'Answer reflection questions with thoughtful responses',
-                'points': 12.5
+                'points': 12.5,
+                'type': 'reflection'
             }
         }
     
@@ -58,9 +144,14 @@ class DetailedHomeworkAnalyzer:
             # Execute notebook to capture real errors and outputs
             executed_nb = self._execute_notebook_safely(nb, notebook_path)
             
+            # Calculate max score from rubric
+            max_score = 37.5  # Default
+            if self.rubric and 'assignment_info' in self.rubric:
+                max_score = self.rubric['assignment_info'].get('total_points', 37.5)
+            
             analysis = {
                 'total_score': 0,
-                'max_score': 37.5,
+                'max_score': max_score,
                 'detailed_feedback': [],
                 'element_scores': {},
                 'missing_elements': [],
@@ -68,7 +159,8 @@ class DetailedHomeworkAnalyzer:
                 'question_analysis': {},
                 'overall_assessment': '',
                 'student_info': self._extract_student_info(nb),
-                'execution_attempted': True
+                'execution_attempted': True,
+                'assignment_type': self._detect_assignment_type()
             }
             
             # Extract all code and markdown content from executed notebook
@@ -84,12 +176,12 @@ class DetailedHomeworkAnalyzer:
                 elif cell.cell_type == 'markdown':
                     markdown_cells.append(cell.source)
             
-            # Analyze each required element
-            analysis = self._analyze_working_directory(code_cells, analysis)
-            analysis = self._analyze_package_loading(code_cells, analysis)
-            analysis = self._analyze_data_import(code_cells, analysis)
-            analysis = self._analyze_data_inspection(code_cells, analysis)
-            analysis = self._analyze_reflection_questions(markdown_cells, analysis)
+            # Analyze based on assignment type
+            if self._is_assignment_2():
+                analysis = self._analyze_assignment_2(code_cells, markdown_cells, analysis)
+            else:
+                # Default to Assignment 1 analysis
+                analysis = self._analyze_assignment_1(code_cells, markdown_cells, analysis)
             
             # Generate overall assessment
             analysis['overall_assessment'] = self._generate_overall_assessment(analysis)
@@ -107,6 +199,462 @@ class DetailedHomeworkAnalyzer:
                 'question_analysis': {},
                 'overall_assessment': 'Notebook could not be analyzed due to technical issues.'
             }
+    
+    def _detect_assignment_type(self):
+        """Detect assignment type from rubric or assignment_id"""
+        # Debug: Print detection info
+        print(f"🔍 Assignment Detection Debug:")
+        print(f"   Assignment ID: {self.assignment_id}")
+        print(f"   Has rubric: {bool(self.rubric)}")
+        
+        if self.rubric and 'assignment_info' in self.rubric:
+            title = self.rubric['assignment_info'].get('title', '').lower()
+            print(f"   Rubric title: '{title}'")
+            if 'data cleaning' in title or 'missing values' in title or 'outliers' in title:
+                print(f"   ✅ Detected Assignment 2 from title")
+                return 'assignment_2'
+        
+        # More flexible assignment ID check
+        if self.assignment_id:
+            aid_str = str(self.assignment_id).lower()
+            if '2' in aid_str or 'data' in aid_str or 'cleaning' in aid_str:
+                print(f"   ✅ Detected Assignment 2 from ID: {aid_str}")
+                return 'assignment_2'
+            
+        # Check rubric elements for Assignment 2 patterns
+        if self.required_elements:
+            element_names = ' '.join(self.required_elements.keys()).lower()
+            print(f"   Rubric elements: {element_names}")
+            if any(keyword in element_names for keyword in ['missing', 'outlier', 'cleaning', 'imputation', 'data_import_assessment']):
+                print(f"   ✅ Detected Assignment 2 from rubric elements")
+                return 'assignment_2'
+        
+        print(f"   ❌ Defaulting to Assignment 1")
+        return 'assignment_1'
+    
+    def _is_assignment_2(self):
+        """Check if this is Assignment 2 (Data Cleaning)"""
+        return self._detect_assignment_type() == 'assignment_2'
+    
+    def _analyze_assignment_1(self, code_cells, markdown_cells, analysis):
+        """Analyze Assignment 1 (Introduction to R)"""
+        analysis = self._analyze_working_directory(code_cells, analysis)
+        analysis = self._analyze_package_loading(code_cells, analysis)
+        analysis = self._analyze_data_import(code_cells, analysis)
+        analysis = self._analyze_data_inspection(code_cells, analysis)
+        analysis = self._analyze_reflection_questions(markdown_cells, analysis)
+        return analysis
+    
+    def _analyze_assignment_2(self, code_cells, markdown_cells, analysis):
+        """Analyze Assignment 2 (Data Cleaning)"""
+        # Analyze Assignment 2 specific elements
+        analysis = self._analyze_data_import_assessment(code_cells, analysis)
+        analysis = self._analyze_missing_value_identification(code_cells, analysis)
+        analysis = self._analyze_missing_value_treatment(code_cells, analysis)
+        analysis = self._analyze_outlier_detection(code_cells, analysis)
+        analysis = self._analyze_outlier_treatment(code_cells, analysis)
+        analysis = self._analyze_methodology_justification(markdown_cells, analysis)
+        analysis = self._analyze_assignment_2_reflection(markdown_cells, analysis)
+        analysis = self._analyze_code_documentation(code_cells, markdown_cells, analysis)
+        return analysis
+    
+    def _analyze_data_import_assessment(self, code_cells, analysis):
+        """Analyze data import for Assignment 2 (messy_sales dataset)"""
+        element_name = 'data_import_assessment'
+        max_points = self.required_elements.get(element_name, {}).get('points', 7.5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        # Look for messy_sales dataset import
+        messy_sales_found = False
+        import_successful = False
+        
+        for cell in code_cells:
+            source = cell['source']
+            outputs = cell.get('outputs', [])
+            
+            # Check for messy_sales import
+            if 'messy_sales' in source and ('read_csv' in source or 'read.csv' in source):
+                messy_sales_found = True
+                feedback.append("✅ Found messy_sales dataset import")
+                
+                # Check if import was successful (look for success messages or data output)
+                for output in outputs:
+                    if output.get('output_type') == 'stream':
+                        text = output.get('text', '')
+                        if 'successfully' in text.lower() or 'rows' in text.lower():
+                            import_successful = True
+                            break
+                    elif output.get('output_type') == 'execute_result':
+                        # Data was displayed, likely successful
+                        import_successful = True
+                        break
+                
+                if import_successful:
+                    score += max_points * 0.8  # 80% for successful import
+                    feedback.append("✅ Dataset imported successfully")
+                else:
+                    score += max_points * 0.4  # 40% for attempt
+                    issues.append("⚠️ Import attempted but may have failed")
+                break
+        
+        if not messy_sales_found:
+            issues.append("❌ Missing messy_sales dataset import")
+            feedback.append("❌ No messy_sales dataset import found")
+        
+        # Check for basic data exploration
+        exploration_found = False
+        for cell in code_cells:
+            source = cell['source']
+            if any(func in source for func in ['head(', 'str(', 'summary(', 'dim(', 'nrow(', 'ncol(']):
+                if 'messy_sales' in source:
+                    exploration_found = True
+                    score += max_points * 0.2  # 20% for exploration
+                    feedback.append("✅ Basic data exploration performed")
+                    break
+        
+        if not exploration_found and messy_sales_found:
+            issues.append("⚠️ Limited data exploration")
+        
+        # Cap score at max_points to prevent inflation
+        final_score = min(score, max_points)
+        analysis['element_scores'][element_name] = final_score
+        analysis['total_score'] += final_score
+        
+        if issues:
+            analysis['missing_elements'].extend(issues)
+        
+        return analysis
+    
+    def _analyze_missing_value_identification(self, code_cells, analysis):
+        """Analyze missing value identification for Assignment 2"""
+        element_name = 'missing_value_identification'
+        max_points = self.required_elements.get(element_name, {}).get('points', 5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        # Look for missing value analysis functions
+        total_missing_found = False
+        missing_per_column_found = False
+        incomplete_rows_found = False
+        
+        for cell in code_cells:
+            source = cell['source']
+            
+            # Check for total missing values calculation
+            if 'sum(is.na(' in source and 'total_missing' in source:
+                total_missing_found = True
+                score += max_points * 0.4
+                feedback.append("✅ Total missing values calculated")
+            
+            # Check for missing values per column
+            if 'colSums(is.na(' in source and 'missing_per_column' in source:
+                missing_per_column_found = True
+                score += max_points * 0.4
+                feedback.append("✅ Missing values per column calculated")
+            
+            # Check for incomplete rows identification
+            if 'complete.cases(' in source and 'incomplete_rows' in source:
+                incomplete_rows_found = True
+                score += max_points * 0.2
+                feedback.append("✅ Incomplete rows identified")
+        
+        if not total_missing_found:
+            issues.append("❌ Missing total_missing calculation")
+        if not missing_per_column_found:
+            issues.append("❌ Missing missing_per_column calculation")
+        if not incomplete_rows_found:
+            issues.append("❌ Missing incomplete_rows identification")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points, issues)
+    
+    def _analyze_missing_value_treatment(self, code_cells, analysis):
+        """Analyze missing value treatment for Assignment 2"""
+        element_name = 'missing_value_treatment'
+        max_points = self.required_elements.get(element_name, {}).get('points', 5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        # Look for removal approach
+        removal_found = False
+        imputation_found = False
+        mode_function_found = False
+        
+        for cell in code_cells:
+            source = cell['source']
+            
+            # Check for removal approach
+            if 'complete.cases(' in source and 'sales_removed_na' in source:
+                removal_found = True
+                score += max_points * 0.3
+                feedback.append("✅ Missing value removal implemented")
+            
+            # Check for mode function
+            if 'get_mode' in source and 'function' in source:
+                mode_function_found = True
+                score += max_points * 0.2
+                feedback.append("✅ Mode function created")
+            
+            # Check for imputation
+            if any(pattern in source for pattern in ['sales_imputed', 'median(', 'mode(']):
+                imputation_found = True
+                score += max_points * 0.5
+                feedback.append("✅ Imputation strategy implemented")
+        
+        if not removal_found:
+            issues.append("❌ Missing value removal not implemented")
+        if not imputation_found:
+            issues.append("❌ Imputation strategy not implemented")
+        if not mode_function_found:
+            issues.append("❌ Mode function not created")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points, issues)
+    
+    def _analyze_outlier_detection(self, code_cells, analysis):
+        """Analyze outlier detection for Assignment 2"""
+        element_name = 'outlier_detection'
+        max_points = self.required_elements.get(element_name, {}).get('points', 5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        # Look for IQR method components
+        quartiles_found = False
+        iqr_found = False
+        thresholds_found = False
+        outliers_identified = False
+        
+        for cell in code_cells:
+            source = cell['source']
+            
+            # Check for quartile calculations
+            if 'quantile(' in source and ('Q1' in source or 'Q3' in source):
+                quartiles_found = True
+                score += max_points * 0.3
+                feedback.append("✅ Quartiles calculated")
+            
+            # Check for IQR calculation
+            if 'IQR(' in source or ('Q3' in source and 'Q1' in source and '-' in source):
+                iqr_found = True
+                score += max_points * 0.2
+                feedback.append("✅ IQR calculated")
+            
+            # Check for threshold calculations
+            if '1.5' in source and ('threshold' in source or 'bound' in source):
+                thresholds_found = True
+                score += max_points * 0.3
+                feedback.append("✅ Outlier thresholds calculated")
+            
+            # Check for outlier identification
+            if 'outliers' in source and ('>' in source or '<' in source):
+                outliers_identified = True
+                score += max_points * 0.2
+                feedback.append("✅ Outliers identified")
+        
+        if not quartiles_found:
+            issues.append("❌ Quartile calculations missing")
+        if not iqr_found:
+            issues.append("❌ IQR calculation missing")
+        if not thresholds_found:
+            issues.append("❌ Outlier thresholds missing")
+        if not outliers_identified:
+            issues.append("❌ Outlier identification missing")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points, issues)
+    
+    def _analyze_outlier_treatment(self, code_cells, analysis):
+        """Analyze outlier treatment for Assignment 2"""
+        element_name = 'outlier_treatment'
+        max_points = self.required_elements.get(element_name, {}).get('points', 2.5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        # Look for treatment approaches
+        removal_found = False
+        capping_found = False
+        
+        for cell in code_cells:
+            source = cell['source']
+            
+            # Check for outlier removal
+            if 'outliers_removed' in source or ('filter(' in source and 'outlier' in source):
+                removal_found = True
+                score += max_points * 0.5
+                feedback.append("✅ Outlier removal implemented")
+            
+            # Check for capping/winsorization
+            if any(pattern in source for pattern in ['capped', 'ifelse(', 'pmin(', 'pmax(']):
+                capping_found = True
+                score += max_points * 0.5
+                feedback.append("✅ Outlier capping implemented")
+        
+        if not removal_found and not capping_found:
+            issues.append("❌ No outlier treatment methods implemented")
+        elif not removal_found:
+            issues.append("⚠️ Outlier removal not implemented")
+        elif not capping_found:
+            issues.append("⚠️ Outlier capping not implemented")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points, issues)
+    
+    def _analyze_methodology_justification(self, markdown_cells, analysis):
+        """Analyze methodology justification for Assignment 2"""
+        element_name = 'methodology_justification'
+        max_points = self.required_elements.get(element_name, {}).get('points', 5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        # Look for justification content
+        justification_found = False
+        business_context = False
+        trade_offs_discussed = False
+        
+        all_markdown = ' '.join(markdown_cells).lower()
+        
+        # Check for final dataset justification
+        if any(phrase in all_markdown for phrase in ['justification', 'choice', 'selected', 'final dataset']):
+            justification_found = True
+            score += max_points * 0.4
+            feedback.append("✅ Dataset choice justification provided")
+        
+        # Check for business context
+        if any(phrase in all_markdown for phrase in ['business', 'analysis', 'decision', 'impact']):
+            business_context = True
+            score += max_points * 0.3
+            feedback.append("✅ Business context considered")
+        
+        # Check for trade-offs discussion
+        if any(phrase in all_markdown for phrase in ['trade-off', 'advantage', 'disadvantage', 'pros', 'cons']):
+            trade_offs_discussed = True
+            score += max_points * 0.3
+            feedback.append("✅ Trade-offs discussed")
+        
+        if not justification_found:
+            issues.append("❌ Missing dataset choice justification")
+        if not business_context:
+            issues.append("⚠️ Limited business context")
+        if not trade_offs_discussed:
+            issues.append("⚠️ Trade-offs not discussed")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points, issues)
+    
+    def _analyze_assignment_2_reflection(self, markdown_cells, analysis):
+        """Analyze reflection questions for Assignment 2"""
+        element_name = 'reflection_questions'
+        max_points = self.required_elements.get(element_name, {}).get('points', 5)
+        
+        score = 0
+        feedback = []
+        issues = []
+        
+        all_markdown = ' '.join(markdown_cells).lower()
+        
+        # Look for Assignment 2 specific reflection topics
+        missing_value_strategy = False
+        outlier_interpretation = False
+        data_quality_impact = False
+        ethical_considerations = False
+        
+        # Check for missing value strategy discussion
+        if any(phrase in all_markdown for phrase in ['missing value', 'removal', 'imputation', 'strategy']):
+            missing_value_strategy = True
+            score += max_points * 0.25
+            feedback.append("✅ Missing value strategy discussed")
+        
+        # Check for outlier interpretation
+        if any(phrase in all_markdown for phrase in ['outlier', 'extreme', 'anomal', 'unusual']):
+            outlier_interpretation = True
+            score += max_points * 0.25
+            feedback.append("✅ Outlier interpretation provided")
+        
+        # Check for data quality impact
+        if any(phrase in all_markdown for phrase in ['quality', 'impact', 'analysis', 'forecast']):
+            data_quality_impact = True
+            score += max_points * 0.25
+            feedback.append("✅ Data quality impact discussed")
+        
+        # Check for ethical considerations
+        if any(phrase in all_markdown for phrase in ['ethical', 'transparency', 'bias', 'integrity']):
+            ethical_considerations = True
+            score += max_points * 0.25
+            feedback.append("✅ Ethical considerations addressed")
+        
+        if not missing_value_strategy:
+            issues.append("❌ Missing value strategy not discussed")
+        if not outlier_interpretation:
+            issues.append("❌ Outlier interpretation missing")
+        if not data_quality_impact:
+            issues.append("❌ Data quality impact not addressed")
+        if not ethical_considerations:
+            issues.append("❌ Ethical considerations missing")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points, issues)
+    
+    def _analyze_code_documentation(self, code_cells, markdown_cells, analysis):
+        """Analyze code documentation for Assignment 2"""
+        element_name = 'code_documentation'
+        max_points = self.required_elements.get(element_name, {}).get('points', 2.5)
+        
+        score = 0
+        feedback = []
+        
+        # Check for comments in code
+        total_code_lines = 0
+        comment_lines = 0
+        
+        for cell in code_cells:
+            source = cell['source']
+            lines = source.split('\n')
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    total_code_lines += 1
+                elif line.startswith('#'):
+                    comment_lines += 1
+        
+        if total_code_lines > 0:
+            comment_ratio = comment_lines / total_code_lines
+            if comment_ratio > 0.2:
+                score += max_points * 0.5
+                feedback.append("✅ Excellent code documentation")
+            elif comment_ratio > 0.1:
+                score += max_points * 0.3
+                feedback.append("✅ Good code documentation")
+            elif comment_ratio > 0.05:
+                score += max_points * 0.1
+                feedback.append("⚠️ Some code documentation")
+        
+        # Check for markdown explanations
+        if len(markdown_cells) >= 3:
+            score += max_points * 0.5
+            feedback.append("✅ Good explanatory text")
+        elif len(markdown_cells) > 0:
+            score += max_points * 0.3
+            feedback.append("✅ Some explanatory text")
+        
+        return self._cap_and_add_score(analysis, element_name, score, max_points)
+    
+    def _cap_and_add_score(self, analysis, element_name, score, max_points, issues=None):
+        """Helper function to cap scores and add to analysis"""
+        final_score = min(score, max_points)
+        analysis['element_scores'][element_name] = final_score
+        analysis['total_score'] += final_score
+        
+        if issues:
+            analysis['missing_elements'].extend(issues)
+        
+        return analysis
     
     def _analyze_working_directory(self, code_cells: List[Dict], analysis: Dict) -> Dict:
         """Check if student used getwd() to check working directory"""
@@ -1336,36 +1884,59 @@ install.packages("readxl")
             import shutil
             import os
             
-            # Create a temporary copy to execute (don't modify original)
+            # Check if notebook needs execution (has code cells without output)
+            needs_execution = self._check_if_execution_needed(nb)
+            
+            if not needs_execution:
+                print(f"📋 Notebook already executed: {os.path.basename(notebook_path)}")
+                return nb
+            
+            print(f"🔄 Executing notebook with missing outputs: {os.path.basename(notebook_path)}")
+            
+            # Create a temporary execution environment
             temp_dir = tempfile.mkdtemp()
             temp_notebook = os.path.join(temp_dir, 'temp_notebook.ipynb')
             
-            # Copy the notebook to temp location
-            with open(temp_notebook, 'w', encoding='utf-8') as f:
-                nbformat.write(nb, f)
+            # Set up consistent working directory and data files
+            execution_dir = self._setup_execution_environment(temp_dir)
             
-            # Set up execution environment
+            # Prepare notebook for execution
+            execution_nb = self._prepare_notebook_for_execution(nb)
+            
+            # Save prepared notebook
+            with open(temp_notebook, 'w', encoding='utf-8') as f:
+                nbformat.write(execution_nb, f)
+            
+            # Set up execution processor
             ep = ExecutePreprocessor(
-                timeout=30,  # 30 seconds per cell max
+                timeout=60,  # 60 seconds per cell max
                 kernel_name='ir',  # R kernel
-                allow_errors=True  # Don't stop on errors - we want to capture them
+                allow_errors=True,  # Don't stop on errors - we want to capture them
+                startup_timeout=120  # Allow time for R kernel to start
             )
             
-            # Execute the notebook
+            # Execute the notebook in the prepared environment
             with open(temp_notebook, 'r', encoding='utf-8') as f:
                 executed_nb = nbformat.read(f, as_version=4)
             
-            # Set up execution environment with data files
-            notebook_dir = os.path.dirname(os.path.abspath(notebook_path))
-            
-            # Create data directory and copy required files
-            self._setup_data_files(notebook_dir)
-            
             try:
-                ep.preprocess(executed_nb, {'metadata': {'path': notebook_dir}})
+                # Execute with proper working directory (container-aware)
+                execution_metadata = {
+                    'metadata': {
+                        'path': execution_dir,
+                        'kernel_spec': {'name': 'ir'}
+                    }
+                }
+                
+                # Add container-specific environment variables if needed
+                if os.path.exists('/workspaces'):
+                    execution_metadata['metadata']['container_env'] = True
+                
+                ep.preprocess(executed_nb, execution_metadata)
                 print(f"✅ Successfully executed notebook: {os.path.basename(notebook_path)}")
             except Exception as exec_error:
                 print(f"⚠️ Execution completed with errors: {exec_error}")
+                # Still return the partially executed notebook
             
             # Clean up temp directory
             shutil.rmtree(temp_dir, ignore_errors=True)
@@ -1378,6 +1949,184 @@ install.packages("readxl")
         except Exception as e:
             print(f"⚠️ Notebook execution failed: {e} - using original notebook")
             return nb
+    
+    def _check_if_execution_needed(self, nb):
+        """Check if notebook has code cells without output that need execution"""
+        for cell in nb.cells:
+            if cell.cell_type == 'code':
+                # Check if cell has code but no outputs
+                if cell.source.strip() and not cell.get('outputs', []):
+                    return True
+                # Check if cell has code but only empty outputs
+                if cell.source.strip() and cell.get('outputs', []):
+                    has_meaningful_output = any(
+                        output.get('text', '').strip() or 
+                        output.get('data', {}) or
+                        output.get('output_type') == 'execute_result'
+                        for output in cell.get('outputs', [])
+                    )
+                    if not has_meaningful_output:
+                        return True
+        return False
+    
+    def _prepare_notebook_for_execution(self, nb):
+        """Prepare notebook for execution with proper setup"""
+        import copy
+        execution_nb = copy.deepcopy(nb)
+        
+        # Add setup cell at the beginning to ensure proper environment
+        setup_cell = nbformat.v4.new_code_cell(source="""
+# Setup execution environment
+options(warn=-1)  # Suppress warnings during execution
+
+# Set working directory to data location (Docker container environment)
+# Try container-specific paths first, then fallback to local paths
+data_paths <- c(
+    "/workspaces/Data-Management-Assignment-1-Intro-to-R/data",  # Common container mount
+    "/workspace/data",  # Alternative container path
+    "../data",  # Relative from homework_grader
+    "../../data",  # Relative from deeper nesting
+    "data",  # Current directory
+    "/app/data",  # Docker app directory
+    "/home/data"  # Container home directory
+)
+
+data_found <- FALSE
+for (path in data_paths) {
+    if (dir.exists(path)) {
+        setwd(path)
+        cat("Working directory set to:", getwd(), "\\n")
+        data_found <- TRUE
+        break
+    }
+}
+
+if (!data_found) {
+    cat("Data directory not found, using current directory:", getwd(), "\\n")
+    cat("Available directories:", paste(list.dirs(".", recursive=FALSE), collapse=", "), "\\n")
+}
+
+# Load required packages
+if (!require(tidyverse, quietly=TRUE)) {
+    cat("Installing tidyverse...\\n")
+    install.packages("tidyverse", repos="https://cran.rstudio.com/")
+    library(tidyverse)
+}
+if (!require(readxl, quietly=TRUE)) {
+    cat("Installing readxl...\\n") 
+    install.packages("readxl", repos="https://cran.rstudio.com/")
+    library(readxl)
+}
+
+# List available data files
+cat("Available data files:\\n")
+print(list.files(pattern = "\\\\.(csv|xlsx)$"))
+
+cat("Environment ready for grading\\n")
+        """)
+        
+        # Insert setup cell at the beginning
+        execution_nb.cells.insert(0, setup_cell)
+        
+        return execution_nb
+    
+    def _setup_execution_environment(self, temp_dir):
+        """Set up execution environment with data files and proper working directory"""
+        try:
+            import os
+            import shutil
+            
+            # Create data directory in temp location
+            data_dir = os.path.join(temp_dir, 'data')
+            os.makedirs(data_dir, exist_ok=True)
+            
+            # Copy data files to execution environment
+            self._copy_data_files_to_execution_dir(data_dir)
+            
+            return temp_dir
+            
+        except Exception as e:
+            print(f"⚠️ Failed to setup execution environment: {e}")
+            return temp_dir
+    
+    def _copy_data_files_to_execution_dir(self, data_dir):
+        """Copy required data files to execution directory"""
+        try:
+            import os
+            import shutil
+            
+            # Use container-aware data directory detection
+            import glob
+            
+            # Look for data files in container-specific locations first
+            possible_data_locations = [
+                '/workspaces/Data-Management-Assignment-1-Intro-to-R/data',  # Dev container mount
+                '/workspace/data',  # Alternative container path
+                '/app/data',  # Docker app directory
+                'data',  # Relative to current directory
+                '../data',  # Relative from homework_grader
+                '../../data',  # Relative from deeper nesting
+                os.path.expanduser('~/data'),  # User home
+            ]
+            
+            # Also check for any workspaces directory pattern
+            workspace_patterns = glob.glob('/workspaces/*/data')
+            possible_data_locations.extend(workspace_patterns)
+            
+            data_files_to_copy = [
+                'sales_data.csv',
+                'customer_feedback.xlsx', 
+                'messy_sales_data.csv'
+            ]
+            
+            for location in possible_data_locations:
+                if os.path.exists(location):
+                    for data_file in data_files_to_copy:
+                        source_path = os.path.join(location, data_file)
+                        if os.path.exists(source_path):
+                            dest_path = os.path.join(data_dir, data_file)
+                            shutil.copy2(source_path, dest_path)
+                            print(f"📁 Copied {data_file} to execution environment")
+                    break
+            
+            # Create sample data files if none found
+            if not any(os.path.exists(os.path.join(data_dir, f)) for f in data_files_to_copy):
+                self._create_sample_data_files(data_dir)
+                
+        except Exception as e:
+            print(f"⚠️ Failed to copy data files: {e}")
+            # Create minimal sample data as fallback
+            self._create_sample_data_files(data_dir)
+    
+    def _create_sample_data_files(self, data_dir):
+        """Create minimal sample data files for execution"""
+        try:
+            import pandas as pd
+            import os
+            
+            # Create minimal sales_data.csv
+            sales_data = pd.DataFrame({
+                'Date': ['2023-01-01', '2023-01-02', '2023-01-03'],
+                'Product': ['A', 'B', 'C'],
+                'Amount': [100, 200, 150]
+            })
+            sales_data.to_csv(os.path.join(data_dir, 'sales_data.csv'), index=False)
+            
+            # Create minimal messy_sales_data.csv with missing values
+            messy_data = pd.DataFrame({
+                'Date': ['2023-01-01', None, '2023-01-03'],
+                'Customer_Name': ['John', 'Jane', None],
+                'Product': ['A', 'B', 'C'],
+                'Quantity': [1, None, 3],
+                'Price': [10.0, 20.0, 15.0],
+                'Sales': [10.0, None, 45.0]
+            })
+            messy_data.to_csv(os.path.join(data_dir, 'messy_sales_data.csv'), index=False)
+            
+            print("📊 Created sample data files for execution")
+            
+        except Exception as e:
+            print(f"⚠️ Failed to create sample data files: {e}")
     
     def _setup_data_files(self, notebook_dir: str):
         """Set up data files in the notebook execution directory"""
