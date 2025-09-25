@@ -293,30 +293,17 @@ class DetailedHomeworkAnalyzer:
                         break
                 
                 if import_successful:
-                    score += max_points * 0.8  # 80% for successful import
+                    score = max_points  # Full points for successful import
                     feedback.append("✅ Dataset imported successfully")
                 else:
-                    score += max_points * 0.4  # 40% for attempt
+                    score = max_points * 0.5  # Half points for attempt
                     issues.append("⚠️ Import attempted but may have failed")
                 break
         
         if not messy_sales_found:
+            score = 0  # No points if no import found
             issues.append("❌ Missing messy_sales dataset import")
             feedback.append("❌ No messy_sales dataset import found")
-        
-        # Check for basic data exploration
-        exploration_found = False
-        for cell in code_cells:
-            source = cell['source']
-            if any(func in source for func in ['head(', 'str(', 'summary(', 'dim(', 'nrow(', 'ncol(']):
-                if 'messy_sales' in source:
-                    exploration_found = True
-                    score += max_points * 0.2  # 20% for exploration
-                    feedback.append("✅ Basic data exploration performed")
-                    break
-        
-        if not exploration_found and messy_sales_found:
-            issues.append("⚠️ Limited data exploration")
         
         # Cap score at max_points to prevent inflation
         final_score = min(score, max_points)
@@ -348,20 +335,21 @@ class DetailedHomeworkAnalyzer:
             # Check for total missing values calculation
             if 'sum(is.na(' in source and 'total_missing' in source:
                 total_missing_found = True
-                score += max_points * 0.4
                 feedback.append("✅ Total missing values calculated")
             
             # Check for missing values per column
             if 'colSums(is.na(' in source and 'missing_per_column' in source:
                 missing_per_column_found = True
-                score += max_points * 0.4
                 feedback.append("✅ Missing values per column calculated")
             
             # Check for incomplete rows identification
             if 'complete.cases(' in source and 'incomplete_rows' in source:
                 incomplete_rows_found = True
-                score += max_points * 0.2
                 feedback.append("✅ Incomplete rows identified")
+        
+        # Simple scoring: count completed tasks
+        completed_tasks = sum([total_missing_found, missing_per_column_found, incomplete_rows_found])
+        score = (completed_tasks / 3) * max_points
         
         if not total_missing_found:
             issues.append("❌ Missing total_missing calculation")
@@ -392,20 +380,21 @@ class DetailedHomeworkAnalyzer:
             # Check for removal approach
             if 'complete.cases(' in source and 'sales_removed_na' in source:
                 removal_found = True
-                score += max_points * 0.3
                 feedback.append("✅ Missing value removal implemented")
             
             # Check for mode function
             if 'get_mode' in source and 'function' in source:
                 mode_function_found = True
-                score += max_points * 0.2
                 feedback.append("✅ Mode function created")
             
             # Check for imputation
             if any(pattern in source for pattern in ['sales_imputed', 'median(', 'mode(']):
                 imputation_found = True
-                score += max_points * 0.5
                 feedback.append("✅ Imputation strategy implemented")
+        
+        # Simple scoring: count completed tasks
+        completed_tasks = sum([removal_found, mode_function_found, imputation_found])
+        score = (completed_tasks / 3) * max_points
         
         if not removal_found:
             issues.append("❌ Missing value removal not implemented")
@@ -437,26 +426,26 @@ class DetailedHomeworkAnalyzer:
             # Check for quartile calculations
             if 'quantile(' in source and ('Q1' in source or 'Q3' in source):
                 quartiles_found = True
-                score += max_points * 0.3
                 feedback.append("✅ Quartiles calculated")
             
             # Check for IQR calculation
             if 'IQR(' in source or ('Q3' in source and 'Q1' in source and '-' in source):
                 iqr_found = True
-                score += max_points * 0.2
                 feedback.append("✅ IQR calculated")
             
             # Check for threshold calculations
             if '1.5' in source and ('threshold' in source or 'bound' in source):
                 thresholds_found = True
-                score += max_points * 0.3
                 feedback.append("✅ Outlier thresholds calculated")
             
             # Check for outlier identification
             if 'outliers' in source and ('>' in source or '<' in source):
                 outliers_identified = True
-                score += max_points * 0.2
                 feedback.append("✅ Outliers identified")
+        
+        # Simple scoring: count completed tasks
+        completed_tasks = sum([quartiles_found, iqr_found, thresholds_found, outliers_identified])
+        score = (completed_tasks / 4) * max_points
         
         if not quartiles_found:
             issues.append("❌ Quartile calculations missing")
@@ -488,14 +477,19 @@ class DetailedHomeworkAnalyzer:
             # Check for outlier removal
             if 'outliers_removed' in source or ('filter(' in source and 'outlier' in source):
                 removal_found = True
-                score += max_points * 0.5
                 feedback.append("✅ Outlier removal implemented")
             
             # Check for capping/winsorization
             if any(pattern in source for pattern in ['capped', 'ifelse(', 'pmin(', 'pmax(']):
                 capping_found = True
-                score += max_points * 0.5
                 feedback.append("✅ Outlier capping implemented")
+        
+        # Simple scoring: count completed tasks (need at least one approach)
+        completed_tasks = sum([removal_found, capping_found])
+        if completed_tasks > 0:
+            score = max_points  # Full points if any approach implemented
+        else:
+            score = 0  # No points if no approach implemented
         
         if not removal_found and not capping_found:
             issues.append("❌ No outlier treatment methods implemented")
@@ -525,20 +519,21 @@ class DetailedHomeworkAnalyzer:
         # Check for final dataset justification
         if any(phrase in all_markdown for phrase in ['justification', 'choice', 'selected', 'final dataset']):
             justification_found = True
-            score += max_points * 0.4
             feedback.append("✅ Dataset choice justification provided")
         
         # Check for business context
         if any(phrase in all_markdown for phrase in ['business', 'analysis', 'decision', 'impact']):
             business_context = True
-            score += max_points * 0.3
             feedback.append("✅ Business context considered")
         
         # Check for trade-offs discussion
         if any(phrase in all_markdown for phrase in ['trade-off', 'advantage', 'disadvantage', 'pros', 'cons']):
             trade_offs_discussed = True
-            score += max_points * 0.3
             feedback.append("✅ Trade-offs discussed")
+        
+        # Simple scoring: count completed elements
+        completed_elements = sum([justification_found, business_context, trade_offs_discussed])
+        score = (completed_elements / 3) * max_points
         
         if not justification_found:
             issues.append("❌ Missing dataset choice justification")
@@ -569,26 +564,26 @@ class DetailedHomeworkAnalyzer:
         # Check for missing value strategy discussion
         if any(phrase in all_markdown for phrase in ['missing value', 'removal', 'imputation', 'strategy']):
             missing_value_strategy = True
-            score += max_points * 0.25
             feedback.append("✅ Missing value strategy discussed")
         
         # Check for outlier interpretation
         if any(phrase in all_markdown for phrase in ['outlier', 'extreme', 'anomal', 'unusual']):
             outlier_interpretation = True
-            score += max_points * 0.25
             feedback.append("✅ Outlier interpretation provided")
         
         # Check for data quality impact
         if any(phrase in all_markdown for phrase in ['quality', 'impact', 'analysis', 'forecast']):
             data_quality_impact = True
-            score += max_points * 0.25
             feedback.append("✅ Data quality impact discussed")
         
         # Check for ethical considerations
         if any(phrase in all_markdown for phrase in ['ethical', 'transparency', 'bias', 'integrity']):
             ethical_considerations = True
-            score += max_points * 0.25
             feedback.append("✅ Ethical considerations addressed")
+        
+        # Simple scoring: count completed questions
+        completed_questions = sum([missing_value_strategy, outlier_interpretation, data_quality_impact, ethical_considerations])
+        score = (completed_questions / 4) * max_points
         
         if not missing_value_strategy:
             issues.append("❌ Missing value strategy not discussed")
@@ -623,25 +618,27 @@ class DetailedHomeworkAnalyzer:
                 elif line.startswith('#'):
                     comment_lines += 1
         
+        has_comments = False
+        has_explanations = False
+        
         if total_code_lines > 0:
             comment_ratio = comment_lines / total_code_lines
-            if comment_ratio > 0.2:
-                score += max_points * 0.5
-                feedback.append("✅ Excellent code documentation")
-            elif comment_ratio > 0.1:
-                score += max_points * 0.3
-                feedback.append("✅ Good code documentation")
-            elif comment_ratio > 0.05:
-                score += max_points * 0.1
-                feedback.append("⚠️ Some code documentation")
+            if comment_ratio > 0.05:  # At least 5% comments
+                has_comments = True
+                feedback.append("✅ Code has comments")
         
         # Check for markdown explanations
-        if len(markdown_cells) >= 3:
-            score += max_points * 0.5
+        if len(markdown_cells) >= 2:  # At least 2 explanation cells
+            has_explanations = True
             feedback.append("✅ Good explanatory text")
-        elif len(markdown_cells) > 0:
-            score += max_points * 0.3
-            feedback.append("✅ Some explanatory text")
+        
+        # Simple scoring: both elements needed for full points
+        if has_comments and has_explanations:
+            score = max_points  # Full points
+        elif has_comments or has_explanations:
+            score = max_points * 0.6  # Partial points
+        else:
+            score = max_points * 0.2  # Minimal points for effort
         
         return self._cap_and_add_score(analysis, element_name, score, max_points)
     

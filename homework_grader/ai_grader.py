@@ -605,25 +605,65 @@ class AIGrader:
         total_points = 0
         
         if rubric:
-            rubric_text = "GRADING RUBRIC:\n"
-            for criterion, details in rubric.items():
-                if isinstance(details, dict):
-                    points = details.get('points', 0)
-                    desc = details.get('description', '')
-                    total_points += points
-                    rubric_text += f"- {criterion}: {points} points - {desc}\n"
-                else:
-                    # Handle case where details is a string or other type
-                    rubric_text += f"- {criterion}: {details}\n"
+            rubric_text = "DETAILED GRADING RUBRIC:\n"
+            
+            # Extract assignment info
+            if 'assignment_info' in rubric:
+                info = rubric['assignment_info']
+                total_points = info.get('total_points', 37.5)
+                rubric_text += f"Assignment: {info.get('title', 'Unknown Assignment')}\n"
+                rubric_text += f"Total Points: {total_points}\n"
+                rubric_text += f"Learning Objectives: {', '.join(info.get('learning_objectives', []))}\n\n"
+            
+            # Extract rubric elements with detailed criteria
+            if 'rubric_elements' in rubric:
+                rubric_text += "RUBRIC ELEMENTS:\n"
+                for element_name, element_data in rubric['rubric_elements'].items():
+                    max_points = element_data.get('max_points', 0)
+                    description = element_data.get('description', '')
+                    category = element_data.get('category', 'unknown')
+                    
+                    rubric_text += f"\n{element_name.upper()} ({max_points} points - {category}):\n"
+                    rubric_text += f"  Description: {description}\n"
+                    
+                    # Add criteria details
+                    if 'criteria' in element_data:
+                        rubric_text += "  Grading Criteria:\n"
+                        for level, criteria in element_data['criteria'].items():
+                            points_range = criteria.get('points', 'N/A')
+                            criteria_desc = criteria.get('description', '')
+                            rubric_text += f"    {level.title()} ({points_range} pts): {criteria_desc}\n"
+                    
+                    # Add automated checks if available
+                    if 'automated_checks' in element_data:
+                        rubric_text += "  Key Requirements:\n"
+                        for check in element_data['automated_checks']:
+                            rubric_text += f"    - {check}\n"
+                
+                rubric_text += "\n"
+            
+            # Fallback for simple rubric format
+            if not rubric_text or rubric_text == "DETAILED GRADING RUBRIC:\n":
+                rubric_text = "GRADING RUBRIC:\n"
+                for criterion, details in rubric.items():
+                    if isinstance(details, dict):
+                        points = details.get('points', 0)
+                        desc = details.get('description', '')
+                        total_points += points
+                        rubric_text += f"- {criterion}: {points} points - {desc}\n"
+                    else:
+                        rubric_text += f"- {criterion}: {details}\n"
         
         solution_section = ""
         if solution_code:
             solution_section = f"""
-REFERENCE SOLUTION:
+REFERENCE SOLUTION (Use as guidance for expected approach and quality):
 {solution_code}
+
+IMPORTANT: The reference solution shows the expected approach and quality level. Students may use different valid methods to achieve the same results. Evaluate based on correctness and understanding, not strict adherence to the reference implementation.
 """
         
-        prompt = f"""You are an expert programming instructor grading a student's homework assignment. Please provide a detailed, fair, and constructive evaluation.
+        prompt = f"""You are an expert data science and programming instructor with extensive experience grading student assignments. You understand both technical execution and conceptual understanding. Provide a thorough, fair, and pedagogically sound evaluation.
 
 ASSIGNMENT: {assignment_name}
 DESCRIPTION: {description}
@@ -641,36 +681,117 @@ CODE:
 EXPLANATORY TEXT:
 {student_markdown}
 
+DETAILED GRADING CRITERIA:
+
+1. TECHNICAL EXECUTION (40% weight):
+   - Code runs without errors and produces correct outputs
+   - Uses appropriate R functions (tidyverse, readr, ggplot2)
+   - Implements required data cleaning techniques correctly
+   - Handles missing values and outliers appropriately
+   - Follows R coding best practices
+
+2. CONCEPTUAL UNDERSTANDING (30% weight):
+   - Demonstrates understanding of data cleaning concepts
+   - Makes informed decisions about missing value treatment
+   - Correctly applies statistical methods (IQR for outliers)
+   - Shows reasoning for data quality choices
+   - Connects cleaning decisions to business context
+
+3. CODE QUALITY & DOCUMENTATION (20% weight):
+   - Clear, readable R code structure
+   - Meaningful variable names and comments
+   - Proper use of R syntax and functions
+   - Good organization of analysis workflow
+   - Evidence of testing and verification
+
+4. COMMUNICATION & ANALYSIS (10% weight):
+   - Clear explanations of data cleaning methodology
+   - Thoughtful interpretation of data quality issues
+   - Comprehensive answers to reflection questions
+   - Professional presentation and documentation
+
+ASSIGNMENT-SPECIFIC EVALUATION FOCUS:
+For Data Cleaning assignments, pay special attention to:
+- Data import and initial assessment quality
+- Missing value identification and treatment strategies
+- Outlier detection using statistical methods (IQR)
+- Comparison of different cleaning approaches
+- Business context and ethical considerations
+- Quality of final dataset selection and justification
+
 GRADING GUIDELINES:
-- MULTIPLE APPROACHES: Accept different valid methods to solve the same problem
-- FOCUS ON OUTCOMES: If the code produces correct results, consider the approach valid
-- CREATIVITY BONUS: Reward innovative or efficient alternative solutions
-- PARTIAL CREDIT: Give credit for partially correct approaches that show understanding
-- LEARNING OBJECTIVES: Prioritize whether the student demonstrates the key concepts
+- ACCURACY FIRST: Correct results are paramount, but give partial credit for logical approaches
+- RECOGNIZE COMPLETED WORK: Carefully examine student code - don't penalize for work that was actually completed
+- MULTIPLE APPROACHES: Accept different valid R methods (base R vs tidyverse, different imputation strategies, etc.)
+- PROCESS OVER PERFECTION: Reward clear thinking and methodology even if execution has minor issues
+- LEARNING EVIDENCE: Look for signs the student understands data cleaning concepts and can justify decisions
+- REAL-WORLD RELEVANCE: Value practical insights about data quality and business implications
+- CREATIVE EXPLORATION: Reward students who go beyond requirements or test alternative approaches
+- DETAILED ANALYSIS: Provide specific feedback about what worked well and what needs improvement
+- ASSIGNMENT-SPECIFIC: Focus on data cleaning skills, not generic programming feedback
+
+SPECIFIC EVALUATION AREAS:
+- Data Import/Loading: Successful CSV import, proper data structure recognition
+- Initial Data Assessment: Use of head(), str(), summary(), identification of data quality issues
+- Missing Value Analysis: Calculation of total_missing, missing_per_column, incomplete_rows identification
+- Missing Value Treatment: Implementation of removal (na.omit) and imputation strategies (mode, median)
+- Outlier Detection: Correct IQR method implementation (Q1, Q3, thresholds, outlier identification)
+- Outlier Treatment: Implementation of removal and/or capping strategies
+- Data Visualization: Creation of boxplots or other plots to visualize outliers
+- Comparison Analysis: Systematic comparison of different cleaning approaches
+- Final Dataset Selection: Justified choice of final cleaned dataset with reasoning
+- Reflection Questions: Thoughtful answers about business implications and ethical considerations
+- Code Quality: Proper R syntax, meaningful variable names, appropriate comments
+- Documentation: Clear explanations of cleaning decisions and methodology
 
 Please evaluate this submission and provide:
 
-1. OVERALL SCORE: A numerical score out of {total_points} points
-2. DETAILED BREAKDOWN: Score for each rubric criterion with justification
-3. FEEDBACK: Specific, constructive feedback for improvement
-4. STRENGTHS: What the student did well
-5. AREAS FOR IMPROVEMENT: Specific suggestions for enhancement
+1. OVERALL SCORE: A numerical score out of {total_points} points (be precise, use decimals if needed)
+2. DETAILED BREAKDOWN: Score for each rubric criterion with specific justification
+3. TECHNICAL FEEDBACK: Specific comments on code execution, logic, and methodology
+4. CONCEPTUAL FEEDBACK: Assessment of understanding and analytical thinking
+5. STRENGTHS: What the student demonstrated well (be specific)
+6. IMPROVEMENT AREAS: Concrete suggestions for enhancement
+7. NEXT STEPS: Recommendations for continued learning
 
-Format your response as JSON:
+FORMAT AS JSON:
 {{
-    "overall_score": <number>,
+    "overall_score": <precise_number>,
     "rubric_breakdown": {{
-        "criterion_name": {{"score": <number>, "max_points": <number>, "feedback": "explanation"}}
+        "criterion_name": {{"score": <number>, "max_points": <number>, "feedback": "detailed_explanation", "strengths": ["specific_strength1"], "improvements": ["specific_improvement1"]}}
     }},
-    "general_feedback": "detailed feedback text",
-    "strengths": ["strength1", "strength2"],
-    "improvements": ["improvement1", "improvement2"],
-    "code_quality_notes": "notes about code quality",
-    "execution_notes": "notes about code execution and correctness",
-    "alternative_approach_notes": "comments on student's approach vs reference solution"
+    "technical_assessment": {{
+        "code_execution": "assessment of whether code runs and produces correct results",
+        "methodology": "evaluation of approach and logic",
+        "efficiency": "comments on code efficiency and best practices",
+        "error_handling": "how well student dealt with issues"
+    }},
+    "conceptual_assessment": {{
+        "understanding": "evidence of conceptual grasp",
+        "analysis_quality": "depth and appropriateness of analysis",
+        "business_context": "connection to real-world applications",
+        "critical_thinking": "evidence of analytical reasoning"
+    }},
+    "communication_assessment": {{
+        "code_documentation": "quality of comments and code organization",
+        "explanatory_text": "clarity and completeness of written explanations",
+        "presentation": "overall professional presentation"
+    }},
+    "overall_strengths": ["strength1", "strength2", "strength3"],
+    "priority_improvements": ["improvement1", "improvement2", "improvement3"],
+    "learning_recommendations": ["next_step1", "next_step2"],
+    "grade_justification": "comprehensive explanation of the overall score"
 }}
 
-IMPORTANT: Be flexible with different approaches. If a student uses base R instead of tidyverse, or a different SQL join strategy, or alternative statistical methods - evaluate based on correctness and understanding, not strict adherence to the reference solution. Reward creativity and valid alternative methods."""
+SCORING PHILOSOPHY: Be generous with partial credit for demonstrated understanding, but maintain high standards for technical accuracy. A student who shows clear thinking but makes minor technical errors should score higher than one who gets lucky with correct output but shows no understanding. Focus on learning evidence over perfect execution.
+
+FEEDBACK REQUIREMENTS:
+- Provide DETAILED, SPECIFIC feedback for each rubric element
+- Acknowledge ALL completed work, even if implementation differs from expected approach
+- Give concrete examples from the student's code when praising or critiquing
+- Offer specific suggestions for improvement with actionable next steps
+- Maintain encouraging tone while being constructively critical
+- Be MORE VERBOSE than typical - students need detailed guidance for learning"""
         
         return prompt
     
@@ -1108,8 +1229,11 @@ def grade_submissions_page(grader):
                         if len(parts) >= 2:
                             model_name = "/".join(parts)
                             
-                            # Categorize by size/type
-                            if "120b" in model_name.lower():
+                            # Categorize by size/type with special handling for Kimi K2
+                            if "kimi" in model_name.lower() and "k2" in model_name.lower():
+                                category = "🚀 Kimi K2 (Excellent for Analysis)"
+                                size_est = "~15GB"
+                            elif "120b" in model_name.lower():
                                 category = "🐌 Excellent (120B)"
                                 size_est = "~70GB"
                             elif "70b" in model_name.lower():
