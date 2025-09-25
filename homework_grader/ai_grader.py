@@ -17,6 +17,13 @@ import sys
 import requests
 import time
 
+# Import two-model grading system
+try:
+    from two_model_grader import TwoModelGrader
+    TWO_MODEL_AVAILABLE = True
+except ImportError:
+    TWO_MODEL_AVAILABLE = False
+
 class LocalAIClient:
     def __init__(self, model_name="gpt-oss:120b", base_url="http://localhost:11434"):
         """Initialize connection to local AI model (Ollama)"""
@@ -1337,6 +1344,26 @@ def grade_submissions_page(grader):
     if 'grading_session_active' not in st.session_state:
         st.session_state.grading_session_active = False
     
+    # Grading method selection
+    st.subheader("🎯 Grading Method")
+    grading_method = st.radio(
+        "Choose grading approach:",
+        ["Single Model (Original)", "Two-Model System (Enhanced)"],
+        help="Two-Model System uses separate models for technical analysis and educational feedback"
+    )
+    
+    use_two_model = grading_method == "Two-Model System (Enhanced)"
+    
+    if use_two_model and not TWO_MODEL_AVAILABLE:
+        st.error("❌ Two-Model System not available. Using single model fallback.")
+        use_two_model = False
+    
+    if use_two_model:
+        st.success("🎯 Two-Model System: Technical analysis + Educational feedback")
+        st.info("📊 Uses Qwen 3.0 Coder for analysis + Gemma-3-27B for feedback")
+    else:
+        st.info("🤖 Single Model: Traditional AI grading approach")
+    
     # Show warning about navigation
     if not st.session_state.grading_session_active:
         st.warning("⚠️ **Important**: Do not navigate away from this page while grading is in progress. This will interrupt the process.")
@@ -1345,7 +1372,10 @@ def grade_submissions_page(grader):
     with col1:
         if st.button("🚀 Grade All Submissions", type="primary", disabled=st.session_state.grading_session_active):
             st.session_state.grading_session_active = True
-            grade_all_submissions(grader, ai_grader, ungraded, assignment_id)
+            if use_two_model:
+                grade_all_submissions_two_model(grader, ungraded, assignment_id)
+            else:
+                grade_all_submissions(grader, ai_grader, ungraded, assignment_id)
     
     with col2:
         if st.session_state.grading_session_active:
@@ -1356,6 +1386,7 @@ def grade_submissions_page(grader):
         else:
             if st.button("🔍 Grade Single Submission"):
                 st.session_state.show_single_grading = True
+                st.session_state.use_two_model_single = use_two_model
     
     # Single submission grading
     if st.session_state.get('show_single_grading', False):
@@ -1364,9 +1395,16 @@ def grade_submissions_page(grader):
         student_options = {f"{row['student_id']} ({row['submission_date']})": row for _, row in ungraded.iterrows()}
         selected_student = st.selectbox("Select Student", list(student_options.keys()))
         
+        use_two_model_single = st.session_state.get('use_two_model_single', False)
+        if use_two_model_single:
+            st.info("🎯 Using Two-Model System for this submission")
+        
         if st.button("Grade This Submission"):
             submission = student_options[selected_student]
-            grade_single_submission(grader, ai_grader, submission, assignment_id)
+            if use_two_model_single:
+                grade_single_submission_two_model(grader, submission, assignment_id)
+            else:
+                grade_single_submission(grader, ai_grader, submission, assignment_id)
 
 def grade_all_submissions(grader, ai_grader, ungraded, assignment_id):
     """Grade all ungraded submissions"""
@@ -1607,3 +1645,168 @@ def ai_training_page(grader):
             st.error("Not enough training data. Please grade more submissions manually first.")
     
     conn.close()
+
+def grade_all_submissions_two_model(grader, ungraded, assignment_id):
+    """Grade all ungraded submissions using the two-model system"""
+    if not TWO_MODEL_AVAILABLE:
+        st.error("Two-Model System not available. Please check installation.")
+        return
+    
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    results_container = st.container()
+    
+    conn = sqlite3.connect(grader.db_path)
+    cursor = conn.cursor()
+    
+    # Get assignment details
+    assignment = pd.read_sql_query(
+        "SELECT * FROM assignments WHERE id = ?", 
+        conn, params=(assignment_id,)
+    ).iloc[0]
+    
+    # Initialize two-model grader
+    try:
+        two_model_grader = TwoModelGrader()
+        status_text.text("🎯 Two-Model System initialized successfully")
+    except Exception as e:
+        st.error(f"Failed to initialize Two-Model System: {e}")
+        conn.close()
+        return
+    
+    graded_count = 0
+    total_submissions = len(ungraded)
+    
+    for idx, (_, submission) in enumerate(ungraded.iterrows()):
+        if not st.session_state.grading_session_active:
+            status_text.text("❌ Grading stopped by user")
+            break
+            
+        progress = (idx + 1) / total_submissions
+        progress_bar.progress(progress)
+        status_text.text(f"🎯 Grading {submission['student_id']} ({idx + 1}/{total_submissions}) - Two-Model System")
+        
+        try:
+            # Load notebook
+            with open(submission['notebook_path'], 'r', encoding='utf-8') as f:
+                notebook = nbformat.read(f, as_version=4)
+            
+            # Grade using two-model system
+            result = two_model_grader.grade_submission(
+                notebook_path=submission['notebook_path'],
+                assignment_name=assignment['name'],
+                student_name=submission['student_id']
+            )
+            
+            if result and 'final_score' in result:
+                # Update database
+                cursor.execute("""
+                    UPDATE submissions 
+                    SET ai_score = ?, ai_feedback = ?, final_score = ?, graded_date = ?
+                    WHERE id = ?
+                """, (
+                    result['final_score'],
+                    result.get('detailed_feedback', 'No feedback available'),
+                    result['final_score'],
+                    datetime.now(),
+                    submission['id']
+                ))
+                conn.commit()
+                graded_count += 1
+                
+                # Show result
+                with results_container:
+                    st.success(f"✅ {submission['student_id']}: {result['final_score']:.1f}% (Two-Model)")
+                    with st.expander(f"Feedback for {submission['student_id']}"):
+                        st.write(result.get('detailed_feedback', 'No feedback available'))
+            else:
+                st.error(f"❌ Failed to grade {submission['student_id']}")
+                
+        except Exception as e:
+            st.error(f"❌ Error grading {submission['student_id']}: {str(e)}")
+            continue
+    
+    conn.close()
+    st.session_state.grading_session_active = False
+    
+    if graded_count > 0:
+        st.success(f"🎯 Two-Model grading complete! Graded {graded_count}/{total_submissions} submissions")
+    else:
+        st.warning("No submissions were successfully graded")
+    
+    st.rerun()
+
+def grade_single_submission_two_model(grader, submission, assignment_id):
+    """Grade a single submission using the two-model system"""
+    if not TWO_MODEL_AVAILABLE:
+        st.error("Two-Model System not available. Please check installation.")
+        return
+    
+    conn = sqlite3.connect(grader.db_path)
+    
+    # Get assignment details
+    assignment = pd.read_sql_query(
+        "SELECT * FROM assignments WHERE id = ?", 
+        conn, params=(assignment_id,)
+    ).iloc[0]
+    
+    with st.spinner(f"🎯 Grading {submission['student_id']} with Two-Model System..."):
+        try:
+            # Initialize two-model grader
+            two_model_grader = TwoModelGrader()
+            
+            # Grade using two-model system
+            result = two_model_grader.grade_submission(
+                notebook_path=submission['notebook_path'],
+                assignment_name=assignment['name'],
+                student_name=submission['student_id']
+            )
+            
+            if result and 'final_score' in result:
+                # Update database
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE submissions 
+                    SET ai_score = ?, ai_feedback = ?, final_score = ?, graded_date = ?
+                    WHERE id = ?
+                """, (
+                    result['final_score'],
+                    result.get('detailed_feedback', 'No feedback available'),
+                    result['final_score'],
+                    datetime.now(),
+                    submission['id']
+                ))
+                conn.commit()
+                
+                # Show detailed results
+                st.success(f"✅ **{submission['student_id']}** graded successfully!")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Final Score", f"{result['final_score']:.1f}%")
+                with col2:
+                    st.metric("Grading Method", "Two-Model System")
+                
+                # Show detailed feedback
+                st.subheader("📝 Detailed Feedback")
+                st.write(result.get('detailed_feedback', 'No feedback available'))
+                
+                # Show technical analysis if available
+                if 'technical_analysis' in result:
+                    with st.expander("🔧 Technical Analysis Details"):
+                        st.write(result['technical_analysis'])
+                
+                # Show educational feedback if available  
+                if 'educational_feedback' in result:
+                    with st.expander("📚 Educational Feedback Details"):
+                        st.write(result['educational_feedback'])
+                
+            else:
+                st.error(f"❌ Failed to grade {submission['student_id']}")
+                
+        except Exception as e:
+            st.error(f"❌ Error grading {submission['student_id']}: {str(e)}")
+    
+    conn.close()
+    st.session_state.show_single_grading = False
+    st.rerun()

@@ -6,14 +6,14 @@ Specialized for technical code evaluation and analysis
 
 import json
 from typing import Dict, List, Any, Optional
-from mlx_ai_client import MLXAIClient
+from simple_mlx_client import SimpleMLXClient
 
 class CodeAnalyzer:
     """Specialized code analysis using Qwen 3.0 Coder model"""
     
     def __init__(self):
-        # Initialize with Qwen 3.0 Coder model
-        self.coder_model = MLXAIClient("Qwen/Qwen2.5-Coder-32B-Instruct")
+        # Initialize with Qwen 3.0 Coder model - no fallbacks
+        self.coder_model = SimpleMLXClient("mlx-community/Qwen3-Coder-30B-A3B-Instruct-bf16")
         self.model_loaded = False
     
     def analyze_code(self, student_code: str, solution_code: str, rubric_elements: Dict) -> Dict[str, Any]:

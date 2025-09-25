@@ -6,7 +6,7 @@ Configuration for Two-Model Grading System
 # Model configurations
 MODEL_CONFIG = {
     'code_analyzer': {
-        'model_name': 'Qwen/Qwen2.5-Coder-32B-Instruct',  # Will use bf16 version when available
+        'model_name': 'mlx-community/Qwen3-Coder-30B-A3B-Instruct-bf16',  # Your preferred bf16 model
         'max_tokens': 2400,  # Optimized for speed while maintaining quality
         'temperature': 0.1,  # Low temperature for precise code analysis
         'timeout': 75,  # Optimized timeout
@@ -16,11 +16,12 @@ MODEL_CONFIG = {
         ]
     },
     'feedback_generator': {
-        'model_name': 'mlx-community/gemma-3-27b-it-8bit',  # Latest Gemma-3, balanced speed/quality
+        'model_name': 'mlx-community/gemma-3-27b-it-bf16',  # Your preferred bf16 model
         'max_tokens': 3800,  # Increased for more verbose, detailed feedback
         'temperature': 0.3,  # Higher temperature for creative feedback
         'timeout': 75,  # Optimized for 27B model
         'fallback_models': [
+            'mlx-community/gemma-3-27b-it-8bit',  # Fallback to 8-bit if bf16 fails
             'lmstudio-community/gpt-oss-120b-MLX-8bit',
             'mlx-community/Meta-Llama-3.1-70B-Instruct-4bit'
         ]

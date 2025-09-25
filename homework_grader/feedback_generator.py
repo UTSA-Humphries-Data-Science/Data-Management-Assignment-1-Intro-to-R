@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
 """
-Feedback Generator Service using GPT-OSS-120B
+Feedback Generator Service using Gemma-3-27B
 Specialized for educational feedback and conceptual evaluation
 """
 
 import json
 from typing import Dict, List, Any, Optional
-from mlx_ai_client import MLXAIClient
+from simple_mlx_client import SimpleMLXClient
+from two_model_config import get_model_config
 
 class FeedbackGenerator:
-    """Specialized feedback generation using GPT-OSS-120B model"""
+    """Specialized feedback generation using Gemma-3-27B model"""
     
     def __init__(self):
-        # Initialize with Gemma-3-27B model (latest, balanced speed/quality)
-        self.feedback_model = MLXAIClient("mlx-community/gemma-3-27b-it-8bit")
+        # Get model configuration
+        config = get_model_config('feedback_generator')
+        model_name = config.get('model_name', 'mlx-community/gemma-3-27b-it-bf16')
+        
+        # Initialize with configured model (bf16 for best quality) - no fallbacks
+        self.feedback_model = SimpleMLXClient(model_name)
         self.model_loaded = False
     
     def generate_feedback(self, 
